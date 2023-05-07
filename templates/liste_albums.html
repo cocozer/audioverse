@@ -32,10 +32,10 @@
                 </tr>
                 {% for album in albums %}
                 <tr>
-                    <td>{{ album[1] }}</td>
+                    <td><img src="static/albums_img/{{ album[1] }}"></td>
                     <td><a href="/album/{{ album[0] }}">{{ album[2] }}</a>
                     </td>
-                    <td>{{ album[3] }}</td>
+                    <td><a href="/artiste/{{ album[6] }}">{{ album[3] }}</a></td>
                     <td>{{ album[4] }}</td>
                     <td>{{ album[5] }}</td>
                 </tr>
