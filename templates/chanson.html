@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/style.css">
+    <title>Page chanson</title>
+</head>
+<body>
+    
+    <nav>
+        <a href="/">Accueil</a>
+        <a href="{{ url_for('artistes') }}">Liste des artistes</a>
+        <a href="{{ url_for('albums') }}">Albums</a>
+        <a href="{{ url_for('sons') }}">Liste des musiques</a>
+    </nav>
+    <main>
+        <h1>{{ chanson[2] }}</h1>
+        <img src="{{ chanson[3] }}" alt="{{ chanson[2] }}" width="300" height="300">
+        <p>Description : {{ chanson[1] }}</p>
+        <p>Durée : {{ chanson[4] }}</p>
+        <p>Directeur artistique : {{ chanson[5] }}</p>
+        <p>Producteur : {{ chanson[6] }}</p>
+        <p>Label : {{ chanson[7] }}</p>
+        <p>Artiste : {{ artiste }}</p>
+        <p>Album : <a href="/album/{{ chanson[9] }}">{{ album }}</a></p>
+        <p>Genre : {{ genre }}</p>
+    </main>
+</body>
+</html>

@@ -1,0 +1,105 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+main {
+    padding:1.5rem;
+}
+/* Style pour le titre de la page */
+h1 {
+    font-size: 36px;
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+/* Style pour chaque playlist */
+.playlist {
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 20px;
+}
+
+/* Style pour le titre de la playlist */
+.playlist h2 {
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+/* Style pour chaque chanson */
+.playlist li {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-left: 20px;
+}
+
+        /* Appliquer une police personnalisée au titre */
+h1 {
+    font-family: 'Arial', sans-serif;
+    font-size: 36px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+/* Appliquer un style de tableau */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ccc;
+}
+
+/* Appliquer un style à l'en-tête de tableau */
+thead {
+    background-color: #f2f2f2;
+    border-bottom: 1px solid #ddd;
+    
+}
+
+/* Appliquer un style aux cellules d'en-tête de tableau */
+th {
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #ddd;
+}
+
+/* Appliquer un style aux cellules du corps de tableau */
+td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+}
+
+/* Appliquer un style aux lignes de tableau alternées */
+tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Appliquer un style à la colonne Genre */
+td:nth-child(4) {
+    font-style: italic;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    background-color: #333;
+    color: #fff;
+    font-size: 20px;
+    padding: 10px;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 10px;
+}

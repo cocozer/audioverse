@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Toutes les chansons par genre</title>
+	<meta charset="utf-8">
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <nav>
+		<a href="/">Accueil</a>
+		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
+		<a href="{{ url_for('albums') }}">Albums</a>
+		<a href="{{ url_for('sons') }}">Liste des musiques</a>
+	</nav>
+    <main>
+        <h1>Liste des chansons</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Titre</th>
+                    <th>Artiste</th>
+                    <th>Album</th>
+                    <th>Durée</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for genre, chansons in chansons_par_genre.items() %}
+                <tr>
+                    <th colspan="5">{{ genre }}</th>
+                </tr>
+                {% for chanson in chansons %}
+                <tr>
+                    <td>{{ chanson[0] }}</td>
+                    <td><a href="/chanson/{{ chanson[0] }}">{{ chanson[2] }}</a>
+                    </td>
+                    <td>{{ chanson[12] }}</td>
+                    <td>{{ chanson[13] }}</td>
+                    <td>{{ chanson[4] }}</td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

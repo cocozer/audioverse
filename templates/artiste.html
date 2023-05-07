@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{ artiste[1] }}</title>
+</head>
+<body>
+    <nav>
+		<a href="/">Accueil</a>
+		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
+		<a href="{{ url_for('albums') }}">Albums</a>
+		<a href="{{ url_for('sons') }}">Liste des musiques</a>
+	</nav>
+	<main>
+		<h1>{{ artiste[1] }}</h1>
+		<img src="{{ artiste[3] }}" alt="{{ artiste[1] }}" width="300" height="300">
+		<p>Genre : {{ artiste[2] }}</p>
+		<p>Biographie : {{ artiste[4] }}</p>
+		<p>Nationalité : {{ artiste[5] }}</p>
+		<p>Date de naissance : {{ artiste[6] }}</p>
+		{% if artiste[7] %}
+			<p>Date de décès : {{ artiste[7] }}</p>
+		{% endif %}
+		<h2>Liste des albums</h2>
+		<ul>
+			{% for album in albums %}
+				<li><a href="/album/{{ album[0] }}">{{ album[1] }}</a></li>
+			{% endfor %}
+		</ul>
+	</main>
+</body>
+</html>

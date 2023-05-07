@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Playlists</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+
+      <nav>
+		<a href="/">Accueil</a>
+        <a href="{{ url_for('artistes') }}">Liste des artistes</a>
+        <a href="{{ url_for('albums') }}">Albums</a>
+        <a href="{{ url_for('sons') }}">Liste des musiques</a>
+        
+		
+	</nav>
+
+    <main>
+        <h1>Playlists</h1>
+        {% for playlist in playlists %}
+        <div>
+            <h2>{{ playlist[1] }}</h2>
+            <ul>
+                {% for chanson in chansons %}
+                {% if chanson[9] == playlist[0] %}
+                <li>{{ chanson[2] }}</li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </main>
+</body>
+</html>
