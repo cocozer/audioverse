@@ -22,14 +22,12 @@
                     <th>Titre</th>
                     <th>Artiste</th>
                     <th>Genre</th>
-                    <th>>Nombre de sons</th>
+                    <th>Nombre de sons</th>
                 </tr>
             </thead>
             <tbody>
                 {% for artiste, albums in albums_par_artiste.items() %}
-                <tr>
-                    <th colspan="5">{{ artiste }}</th>
-                </tr>
+
                 {% for album in albums %}
                 <tr>
                     <td><img src="static/albums_img/{{ album[1] }}"></td>
