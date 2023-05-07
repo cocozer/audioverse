@@ -66,7 +66,7 @@ def chanson(id_chanson):
 @app.route('/albums')
 def albums():
     cursor = db.cursor()
-    cursor.execute("SELECT Albums.id_album, Albums.cover, Albums.titre, Artistes.nom AS nom_artiste, Genres.titre, COUNT(chansons.id_chanson) as nombre_de_musiques, Albums.id_artiste FROM Albums JOIN Genres ON Albums.id_genre = Genres.id_genre LEFT JOIN Artistes ON Albums.id_artiste = Artistes.id_artiste LEFT JOIN chansons ON Albums.id_album = chansons.id_album ORDER BY Artistes.id_artiste")
+    cursor.execute("SELECT albums.id_album, albums.cover, albums.titre, artistes.nom AS nom_artiste, genres.titre, COUNT(chansons.id_chanson) AS nombre_de_musique, albums.id_artiste FROM chansons INNER JOIN artistes ON chansons.id_artiste = artistes.id_artiste INNER JOIN genres ON chansons.id_genre = genres.id_genre INNER JOIN albums ON chansons.id_album = albums.id_album GROUP BY albums.id_album ORDER BY artistes.id_artiste")
     albums = cursor.fetchall()
     cursor.close()
 
