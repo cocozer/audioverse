@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 import mysql.connector
 
 app = Flask(__name__)
@@ -12,12 +12,47 @@ db = mysql.connector.connect(
 @app.route('/')
 def index():
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM Playlist")
+    cursor.execute("SELECT Playlist.* FROM Playlist")
     playlists = cursor.fetchall()
-    cursor.execute("SELECT * FROM Chansons")
+    cursor.execute("SELECT Chansons.* FROM Chansons")
     chansons = cursor.fetchall()
     cursor.close()
     return render_template('audioverse.html', playlists=playlists, chansons=chansons)
+
+@app.route('/playlist/<int:id_playlist>')
+def playlist(id_playlist):
+    cursor = db.cursor()
+    cursor.execute("SELECT playlist.* FROM Playlist WHERE playlist.id_playlist=%s", (id_playlist,))
+    playlist = cursor.fetchone()
+    cursor.close()
+
+    cursor = db.cursor()
+    cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist INNER JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s", (id_playlist,))
+    chansons = cursor.fetchall()
+    cursor.close()
+
+    cursor = db.cursor()
+    cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist RIGHT JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s IS NULL", (id_playlist,))
+    chansonspasdansplaylist = cursor.fetchall()
+    cursor.close()
+
+    return render_template('playlist.html', playlist=playlist, chansons=chansons, chansonspasdansplaylist=chansonspasdansplaylist)
+
+@app.route('/add/<int:id_playlist>/<int:id_chanson>')
+def add(id_chanson, id_playlist):
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO playlist_chansons VALUES(%s,%s)", (id_playlist,id_chanson))
+    db.commit()
+    cursor.close()
+    return redirect('/playlist/'+str(id_playlist))
+
+@app.route('/remove/<int:id_playlist>/<int:id_chanson>')
+def remove(id_chanson, id_playlist):
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM playlist_chansons WHERE id_playlist=%s AND id_chanson=%s", (id_playlist,id_chanson))
+    db.commit()
+    cursor.close()
+    return redirect('/playlist/'+str(id_playlist))
 
 @app.route('/sons')
 def sons():

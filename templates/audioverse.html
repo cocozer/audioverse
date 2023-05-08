@@ -18,15 +18,16 @@
     <main>
         <h1>Playlists</h1>
         {% for playlist in playlists %}
-        <div>
-            <h2>{{ playlist[1] }}</h2>
-            <ul>
-                {% for chanson in chansons %}
-                {% if chanson[9] == playlist[0] %}
-                <li>{{ chanson[2] }}</li>
-                {% endif %}
-                {% endfor %}
-            </ul>
+        <div class="playlist">
+            <div>
+                <h2>{{ playlist[1] }}</h2>
+                {# <ul>
+                    <h3>Retirer :</h3>
+                </ul> #}
+            </div>
+            <aside>
+                <a href="playlist/{{ playlist[0] }}">Modifier la playlist</a>
+            </aside>
         </div>
         {% endfor %}
     </main>

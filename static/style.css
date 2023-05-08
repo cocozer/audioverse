@@ -8,6 +8,11 @@ body {
 main {
     padding:1.5rem;
 }
+.playlist {
+    display:flex;
+    justify-content: space-between;
+}
+
 /* Style pour le titre de la page */
 h1 {
     font-size: 36px;

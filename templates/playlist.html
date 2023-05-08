@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{ playlist[1] }}</title>
+	<link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <nav>
+		<a href="/">Accueil</a>
+		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
+		<a href="{{ url_for('albums') }}">Albums</a>
+		<a href="{{ url_for('sons') }}">Liste des musiques</a>
+	</nav>
+	<main>
+		<h1>{{ playlist[1] }}</h1>
+        <img src="static/playlists_img/{{ playlist[4] }}">
+		<p>Description : {{ playlist[2] }}</p>
+		<p>Date de création : {{ playlist[3] }}</p>
+		<h2>Liste des chansons dans la playlist</h2>
+        <div class="playlist">
+            <ul>
+            {% for chanson in chansons %}
+                    <li>{{ chanson[1] }}<a href="/remove/{{ chanson[12] }}/{{ chanson[11] }}"> Retirer </a></li>     
+            {% endfor %}
+            </ul>
+            <aside>
+                <ul>
+                    {% for chanson in chansonspasdansplaylist %}
+                            <li>{{ chanson[1] }}<a href="/add/{{ playlist[0] }}/{{ chanson[0] }}"> Ajouter </a></li>
+                    {% endfor %}
+                    </ul>
+            </aside>
+        </div>
+        
+	</main>
+</body>
+</html>
