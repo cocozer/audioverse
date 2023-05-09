@@ -14,13 +14,15 @@
 	</nav>
   <main>
     <h1>Liste des artistes</h1>
+    <form style="display:flex; justify-content:space-between">
 
+    </form>
     <table>
         <thead>
           <tr>
+            <th>Photo</th>
             <th>Nom</th>
             <th>Genre</th>
-            <th>Photo</th>
             <th>Biographie</th>
             <th>Nationalité</th>
             <th>Date de naissance</th>
@@ -29,9 +31,9 @@
         <tbody>
           {% for artiste in artistes %}
             <tr>
+              <td><img src="{{ artiste[3] }}" alt="{{ artiste[1] }}" width="100"></td>
               <td>{{ artiste[1] }}</td>
               <td>{{ artiste[2] }}</td>
-              <td><img src="{{ artiste[3] }}" alt="{{ artiste[1] }}" width="100"></td>
               <td>{{ artiste[4] }}</td>
               <td>{{ artiste[5] }}</td>
               <td>{{ artiste[6] }}</td>
