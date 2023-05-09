@@ -1,6 +1,8 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask,request, render_template, redirect, url_for, flash #Il faut installer flask-flash avec pip (pip install Flask-Flash)
 import mysql.connector
+from flask_uploads import UploadSet, UploadNotAllowed, configure_uploads, IMAGES #Il faut installer flask-uploads avec pip (pip install flask-uploads)
 
+#S'il y a des problèmes au lancé du site, installer une version antérieure de markupsafe (pip uninstall markupsafe) puis (pip install markupsafe==1.1.1)
 app = Flask(__name__)
 db = mysql.connector.connect(
     host="localhost",
@@ -8,6 +10,12 @@ db = mysql.connector.connect(
     password="",
     database="projet_python"
 )
+
+app.config['UPLOADED_PHOTOS_DEST'] = 'static'
+app.config['UPLOADED_PHOTOS_ALLOW'] = IMAGES
+app.config['UPLOADED_PHOTOS_MAX_SIZE'] = 16 * 1024 * 1024  # 16MB max size
+photos = UploadSet('photos', IMAGES)
+configure_uploads(app, photos)
 
 @app.route('/')
 def index():
@@ -69,6 +77,62 @@ def sons():
         chansons_par_genre[chanson[11]].append(chanson)
 
     return render_template('liste_sons.html', chansons_par_genre=chansons_par_genre)
+
+@app.route('/sons/new')
+def newsons():
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM Albums INNER JOIN Artistes ON Artistes.id_artiste=Albums.id_artiste GROUP BY Albums.id_album")
+    albums = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM Genres")
+    genres = cursor.fetchall()
+
+    cursor.execute("SELECT MAX(id_chanson) FROM chansons")
+    lastchanson = cursor.fetchone()
+    
+    cursor.close()
+
+    return render_template('new-son-form.html', albums=albums, newid=lastchanson[0]+1, genres=genres)
+
+@app.route('/sons/new/post', methods=['POST'])
+def newsonspost():
+    print("cc")
+    id_chanson = int(request.form['id_chanson'])
+    titre = request.form['titre']
+    description = request.form['description']
+    duree = request.form['duree']
+    directeur_artistique = request.form['directeur_artistique']
+    producteur = request.form['producteur']
+    label = request.form['label']
+    id_album = int(request.form['id_album'])
+    id_genre = int(request.form['id_genre'])
+
+    app.config['UPLOADED_PHOTOS_DEST'] = 'static/chansons_img' # Modification de la destination
+    photos = UploadSet('photos', IMAGES)
+    configure_uploads(app, photos)
+
+    cover = request.files.get('cover')
+    if cover:
+        try:
+            filename = photos.save(cover)
+            cover = filename
+        except UploadNotAllowed:
+            flash('Le type de fichier de la cover est invalide', 'danger')
+            return redirect(url_for('ajouter_chanson'))
+    
+
+    cursor = db.cursor()
+
+    cursor.execute("SELECT id_artiste FROM Albums WHERE id_album=%s", (id_album, ))
+    artiste = cursor.fetchone()
+    id_artiste = artiste[0]
+
+    cursor.execute("INSERT INTO Chansons VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (id_chanson, description, titre, cover, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre))
+    db.commit()
+    cursor.close()
+    return redirect('/sons')
+   
 
 @app.route('/artistes')
 def artistes():
