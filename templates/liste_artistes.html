@@ -15,7 +15,7 @@
   <main>
     <h1>Liste des artistes</h1>
     <form style="display:flex; justify-content:space-between">
-
+      
     </form>
     <table>
         <thead>
@@ -31,8 +31,8 @@
         <tbody>
           {% for artiste in artistes %}
             <tr>
-              <td><img src="{{ artiste[3] }}" alt="{{ artiste[1] }}" width="100"></td>
-              <td>{{ artiste[1] }}</td>
+              <td><img src="/static/artistes_img/{{ artiste[3] }}" alt="{{ artiste[1] }}" width="100"></td>
+              <td><a href ="/artiste/{{ artiste[0] }}">{{ artiste[1] }}</a></td>
               <td>{{ artiste[2] }}</td>
               <td>{{ artiste[4] }}</td>
               <td>{{ artiste[5] }}</td>
