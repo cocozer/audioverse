@@ -1,4 +1,4 @@
-from flask import Flask,request, render_template, redirect, url_for, flash #Il faut installer flask-flash avec pip (pip install Flask-Flash)
+from flask import Flask,request, render_template, redirect, url_for 
 import mysql.connector
 from flask_uploads import UploadSet, UploadNotAllowed, configure_uploads, IMAGES #Il faut installer flask-uploads avec pip (pip install flask-uploads)
 
@@ -17,6 +17,7 @@ app.config['UPLOADED_PHOTOS_MAX_SIZE'] = 16 * 1024 * 1024  # 16MB max size
 photos = UploadSet('photos', IMAGES)
 configure_uploads(app, photos)
 
+
 @app.route('/')
 def index():
     cursor = db.cursor()
@@ -26,6 +27,10 @@ def index():
     chansons = cursor.fetchall()
     cursor.close()
     return render_template('audioverse.html', playlists=playlists, chansons=chansons)
+
+@app.route('/erreur-upload')
+def error():
+    return render_template('erreur-format-de-fichier.html')
 
 @app.route('/playlist/<int:id_playlist>')
 def playlist(id_playlist):
@@ -118,8 +123,7 @@ def newsonspost():
             filename = photos.save(cover)
             cover = filename
         except UploadNotAllowed:
-            flash('Le type de fichier de la cover est invalide', 'danger')
-            return redirect(url_for('ajouter_chanson'))
+            return redirect('/erreur-upload')
     
 
     cursor = db.cursor()

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/style.css">
+    <title>Erreur d'upload</title>
+</head>
+<body>
+    
+    <nav>
+        <a href="/">Accueil</a>
+        <a href="{{ url_for('artistes') }}">Liste des artistes</a>
+        <a href="{{ url_for('albums') }}">Albums</a>
+        <a href="{{ url_for('sons') }}">Liste des musiques</a>
+    </nav>
+    <main>
+        <h1>Erreur dans le format de l'image</h1>
+        <p>Seul les formats .png, .jpg et .jpeg sont acceptés</p>
+    </main>
+</body>
+</html>
