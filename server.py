@@ -51,6 +51,46 @@ def playlist(id_playlist):
 
     return render_template('playlist.html', playlist=playlist, chansons=chansons, chansonspasdansplaylist=chansonspasdansplaylist)
 
+@app.route('/playlist/edit/<int:id_playlist>')
+def playlistedit(id_playlist):
+    cursor = db.cursor()
+    cursor.execute("SELECT playlist.* FROM Playlist WHERE playlist.id_playlist=%s", (id_playlist,))
+    playlist = cursor.fetchone()
+    cursor.close()
+
+    return render_template('playlist-edit-form.html', playlist=playlist)
+
+@app.route('/playlist/edit/post', methods=['POST'])
+def playlisteditpost():
+    id_playlist = int(request.form['id_playlist'])
+    nom = request.form['nom']
+    description = request.form['description']
+
+    app.config['UPLOADED_PHOTOS_DEST'] = 'static/playlists_img' # Modification de la destination
+    photos = UploadSet('photos', IMAGES)
+    configure_uploads(app, photos)
+    image = request.files.get('image')
+    if image:
+        try:
+            filename = photos.save(image)
+            image = filename
+        except UploadNotAllowed:
+            return redirect('/erreur-upload')
+    if not image:
+        cursor = db.cursor()
+        cursor.execute("UPDATE Playlist SET nom=%s, description=%s WHERE id_playlist=%s", (nom, description, id_playlist))
+        db.commit()
+        cursor.close()
+        id_playlist = str(id_playlist)
+        return redirect('/playlist/'+id_playlist)
+    if image:
+        cursor = db.cursor()
+        cursor.execute("UPDATE Playlist SET nom=%s, description=%s, image_upload=%s WHERE id_playlist=%s", (nom, description, image, id_playlist))
+        db.commit()
+        cursor.close()
+        id_playlist = str(id_playlist)
+        return redirect('/playlist/'+id_playlist)
+
 @app.route('/add/<int:id_playlist>/<int:id_chanson>')
 def add(id_chanson, id_playlist):
     cursor = db.cursor()
@@ -102,7 +142,6 @@ def newsons():
 
 @app.route('/sons/new/post', methods=['POST'])
 def newsonspost():
-    print("cc")
     id_chanson = int(request.form['id_chanson'])
     titre = request.form['titre']
     description = request.form['description']

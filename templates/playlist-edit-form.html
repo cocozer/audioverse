@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Formulaire de modification de playlist</title>
+	<meta charset="utf-8">
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <nav>
+		<a href="/">Accueil</a>
+		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
+		<a href="{{ url_for('albums') }}">Albums</a>
+		<a href="{{ url_for('sons') }}">Liste des musiques</a>
+	</nav>
+    <main>
+        <h1>Modification des informations de la playlist</h1>
+        <form method="POST" enctype="multipart/form-data" action="/playlist/edit/post">
+            <div style="visibility:hidden" class="form-group">
+                <label for="id_playlist">ID Playlist</label>
+                <input type="number" name="id_playlist" id="id_playlist" class="form-control" value="{{ playlist[0] }}">
+            </div>
+            <div class="form-group">
+                <label for="nom">Nom</label>
+                <input type="text" name="nom" id="nom" value="{{ playlist[1] }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description" class="form-control">{{ playlist[2] }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="image">Image</label>
+                <input type="file" name="image" id="image" class="form-control-file">
+            </div>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </form>
+        
+    </main>
+</body>
+</html>
