@@ -1,5 +1,6 @@
 from flask import Flask,request, render_template, redirect, url_for 
 import mysql.connector
+import datetime
 from flask_uploads import UploadSet, UploadNotAllowed, configure_uploads, IMAGES #Il faut installer flask-uploads avec pip (pip install flask-uploads)
 
 #S'il y a des problèmes au lancé du site, installer une version antérieure de markupsafe (pip uninstall markupsafe) puis (pip install markupsafe==1.1.1)
@@ -51,6 +52,41 @@ def playlist(id_playlist):
 
     return render_template('playlist.html', playlist=playlist, chansons=chansons, chansonspasdansplaylist=chansonspasdansplaylist)
 
+@app.route('/playlist/new')
+def playlistcreate():
+    cursor = db.cursor()
+    cursor.execute("SELECT MAX(id_playlist) FROM playlist")
+    lastplaylist = cursor.fetchone()
+    
+    cursor.close()
+
+    return render_template('new-playlist-form.html', newid=lastplaylist[0]+1)
+    
+@app.route('/playlist/new/post', methods=['POST'])
+def playlistnewpost():
+    id_playlist = int(request.form['id_playlist'])
+    nom = request.form['nom']
+    description = request.form['description']
+
+    app.config['UPLOADED_PHOTOS_DEST'] = 'static/playlists_img' # Modification de la destination
+    photos = UploadSet('photos', IMAGES)
+    configure_uploads(app, photos)
+    image = request.files.get('image')
+    if image:
+        try:
+            filename = photos.save(image)
+            image = filename
+        except UploadNotAllowed:
+            return redirect('/erreur-upload')
+    
+    date = datetime.date.today()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO Playlist VALUES(%s, %s, %s, %s, %s)", (id_playlist, nom, description, date, image, ))
+    db.commit()
+    cursor.close()
+    id_playlist = str(id_playlist)
+    return redirect('/playlist/'+id_playlist)
+    
 @app.route('/playlist/edit/<int:id_playlist>')
 def playlistedit(id_playlist):
     cursor = db.cursor()
@@ -59,7 +95,7 @@ def playlistedit(id_playlist):
     cursor.close()
 
     return render_template('playlist-edit-form.html', playlist=playlist)
-
+    
 @app.route('/playlist/edit/post', methods=['POST'])
 def playlisteditpost():
     id_playlist = int(request.form['id_playlist'])
@@ -90,6 +126,20 @@ def playlisteditpost():
         cursor.close()
         id_playlist = str(id_playlist)
         return redirect('/playlist/'+id_playlist)
+
+@app.route('/playlist/delete/<int:id_playlist>')
+def playlistdelete(id_playlist):
+    cursor = db.cursor()
+
+    cursor.execute("DELETE FROM Playlist_chansons WHERE id_playlist=%s", (id_playlist,))
+    db.commit()
+
+    cursor.execute("DELETE FROM Playlist WHERE playlist.id_playlist=%s", (id_playlist,))
+    db.commit()
+    cursor.close()
+
+    return redirect('/')
+
 
 @app.route('/add/<int:id_playlist>/<int:id_chanson>')
 def add(id_chanson, id_playlist):
@@ -175,6 +225,7 @@ def newsonspost():
     db.commit()
     cursor.close()
     return redirect('/sons')
+
    
 
 @app.route('/artistes')
@@ -194,7 +245,6 @@ def chanson(id_chanson):
 
     cursor.execute("SELECT nom FROM Artistes WHERE id_artiste=%s", (chanson[8],))
     artiste = cursor.fetchone()[0]
-    print(artiste)
 
     cursor.execute("SELECT titre FROM Albums WHERE id_album=%s", (chanson[9],))
     album = cursor.fetchone()[0]
@@ -204,6 +254,78 @@ def chanson(id_chanson):
 
     return render_template('chanson.html', chanson=chanson, artiste=artiste, album=album, genre=genre)
 
+@app.route('/chanson/edit/<int:id_chanson>')
+def chansonedit(id_chanson):
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM Chansons WHERE chansons.id_chanson=%s", (id_chanson,))
+    chanson = cursor.fetchone()
+
+    cursor.execute("SELECT * FROM Artistes")
+    artistes = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM Albums")
+    albums = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM Genres")
+    genres = cursor.fetchall()
+
+    cursor.close()
+
+    return render_template('chanson-edit-form.html', chanson=chanson, artistes=artistes, albums=albums, genres=genres)
+
+@app.route('/chanson/edit/post', methods=['POST'])
+def chansoneditpost():
+    id_chanson = int(request.form['id_chanson'])
+    titre = request.form['titre']
+    description = request.form['description']
+    duree = request.form['duree']
+    directeur_artistique = request.form['directeur_artistique']
+    producteur = request.form['producteur']
+    label = request.form['label']
+    id_artiste = int(request.form['id_artiste'])
+    id_album = int(request.form['id_album'])
+    id_genre = int(request.form['id_genre'])
+
+    app.config['UPLOADED_PHOTOS_DEST'] = 'static/chansons_img' # Modification de la destination
+    photos = UploadSet('photos', IMAGES)
+    configure_uploads(app, photos)
+
+    cover = request.files.get('cover')
+    if cover:
+        try:
+            filename = photos.save(cover)
+            cover = filename
+        except UploadNotAllowed:
+            return redirect('/erreur-upload')
+    if not cover:
+        cursor = db.cursor()
+        cursor.execute("UPDATE Chansons SET description=%s, titre=%s, duree=%s, directeur_artistique=%s, producteur=%s, label=%s, id_artiste=%s, id_album=%s, id_genre=%s WHERE id_chanson=%s", (description, titre, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre, id_chanson))
+        db.commit()
+        cursor.close()
+        id_chanson = str(id_chanson)
+        return redirect('/chanson/'+id_chanson)
+
+    if cover:
+        cursor = db.cursor()
+        cursor.execute("UPDATE Chansons SET description=%s, titre=%s, cover=%s, duree=%s, directeur_artistique=%s, producteur=%s, label=%s, id_artiste=%s, id_album=%s, id_genre=%s WHERE id_chanson=%s", (description, titre, cover, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre, id_chanson))
+        db.commit()
+        cursor.close()
+        id_chanson = str(id_chanson)
+        return redirect('/chanson/'+id_chanson)
+    
+@app.route('/chanson/delete/<int:id_chanson>')
+def chansondelete(id_chanson):
+    cursor = db.cursor()
+
+    cursor.execute("DELETE FROM Playlist_chansons WHERE id_chanson=%s", (id_chanson,))
+    db.commit()
+
+    cursor.execute("DELETE FROM chansons WHERE chansons.id_chanson=%s", (id_chanson,))
+    db.commit()
+    cursor.close()
+
+    return redirect('/sons')
 
 @app.route('/albums')
 def albums():

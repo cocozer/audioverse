@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Formulaire de modification de chanson</title>
+	<meta charset="utf-8">
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <nav>
+		<a href="/">Accueil</a>
+		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
+		<a href="{{ url_for('albums') }}">Albums</a>
+		<a href="{{ url_for('sons') }}">Liste des musiques</a>
+	</nav>
+    <main>
+        <h1>Modification de chanson</h1>
+        <form method="POST" enctype="multipart/form-data" action="/chanson/edit/post">
+            <div style="visibility:hidden" class="form-group">
+                <label for="id_chanson">ID Chanson</label>
+                <input type="number" name="id_chanson" id="id_chanson" class="form-control" value="{{ chanson[0] }}">
+            </div>
+            <div class="form-group">
+                <label for="titre">Titre</label>
+                <input type="text" name="titre" id="titre" value="{{ chanson[2] }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description"  class="form-control">{{ chanson[1] }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="cover">Cover</label>
+                <input type="file" name="cover" id="cover" class="form-control-file">
+            </div>
+            <div class="form-group">
+                <label for="duree">Durée</label>
+                <input type="time" name="duree" id="duree" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="directeur_artistique">Directeur artistique</label>
+                <input type="text" name="directeur_artistique" value="{{ chanson[5] }}" id="directeur_artistique" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="producteur">Producteur</label>
+                <input type="text" name="producteur" value="{{ chanson[6] }}" id="producteur" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="label">Label</label>
+                <input type="text" name="label" value="{{ chanson[7] }}" id="label" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="id_artiste">Artiste</label>
+                <select name="id_artiste" id="id_artiste" class="form-control">
+                    {% for artiste in artistes %}
+                    <option value="{{ artiste[0] }}">{{ artiste[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id_album">Album</label>
+                <select name="id_album" id="id_album" class="form-control">
+                    {% for album in albums %}
+                    <option value="{{ album[0] }}">{{ album[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id_genre">Genre</label>
+                <select name="id_genre" id="id_genre" class="form-control">
+                    {% for genre in genres %}
+                    <option value="{{ genre[0] }}">{{ genre[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </form>
+        
+    </main>
+</body>
+</html>
