@@ -372,16 +372,14 @@ def album(id_album):
 def get_album(id_album):
     try:
         # Récupérer les informations de l'album
-        cursor = mysql.connection.cursor()
+        cursor = db.cursor()
         cursor.execute("SELECT Albums.*, Artistes.nom AS nom_artiste, Genres.titre AS nom_genre FROM Albums JOIN Artistes ON Albums.id_artiste = Artistes.id_artiste JOIN Genres ON Albums.id_genre = Genres.id_genre WHERE Albums.id_album = %s", (id_album,))
         album = cursor.fetchone()
-        cursor.close()
 
         if not album:
             return jsonify({'error': 'Album not found'}), 404
 
         # Récupérer les chansons de l'album
-        cursor = mysql.connection.cursor()
         cursor.execute("SELECT Chansons.* FROM Chansons WHERE Chansons.id_album = %s", (id_album,))
         chansons = cursor.fetchall()
         cursor.close()
