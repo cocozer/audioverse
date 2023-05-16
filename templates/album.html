@@ -1,32 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ album[1] }}</title>
+    <title id="album-title"></title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <nav>
 		<a href="/">Accueil</a>
-		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
-		<a href="{{ url_for('albums') }}">Albums</a>
-		<a href="{{ url_for('sons') }}">Liste des musiques</a>
+		<a href="/artistes">Liste des artistes</a>
+		<a href="/albums">Albums</a>
+		<a href="/sons">Liste des musiques</a>
 	</nav>
     <main>
-        <h1>{{ album[1] }}</h1>
-        <img src="/static/albums_img/{{ album[2] }}" alt="{{ album[1] }}" width="300" height="300">
-        <p>Artiste : {{ album[9] }}</p>
-        <p>Genre : {{ album[10] }}</p>
-        <p>Année de sortie : {{ album[3] }}</p>
-        <p>Directeur artistique : {{ album[4] }}</p>
-        <p>Producteurs : {{ album[5] }}</p>
-        <p>Label : {{ album[6] }}</p>
+        <h1 id="album-title"></h1>
+        <img id="album-image" src="" alt="" width="300" height="300">
+        <p id="album-artist"></p>
+        <p id="album-genre"></p>
+        <p id="album-release-year"></p>
+        <p id="album-artistic-director"></p>
+        <p id="album-producers"></p>
+        <p id="album-label"></p>
 
         <h2>Tracklist</h2>
-        <ul>
-            {% for chanson in chansons %}
-            <li><a href="/chanson/{{ chanson[0] }}">{{ chanson[2] }}</a></li>
-            {% endfor %}
-        </ul>
+        <ul id="album-songs"></ul>
     </main>
+
+    <script>
+        // Récupérer l'ID de l'album à partir de l'URL
+        var albumId = window.location.pathname.split('/').pop();
+        // Faire une requête GET à l'API pour obtenir les informations de l'album
+        fetch('/api/album/' + albumId)
+            .then(response => response.json())
+            .then(album => {
+                console.log('album');
+                console.log(album);
+                console.log('album');
+                // Mettre à jour les éléments HTML avec les informations de l'album
+                document.getElementById('album-title').innerText = album.title;
+                document.getElementById('album-image').src = '/static/albums_img/' + album.image;
+                document.getElementById('album-artist').innerText = 'Artiste : ' + album.artist;
+                document.getElementById('album-genre').innerText = 'Genre : ' + album.genre;
+                document.getElementById('album-release-year').innerText = 'Année de sortie : ' + album.release_year;
+                document.getElementById('album-artistic-director').innerText = 'Directeur artistique : ' + album.artistic_director;
+                document.getElementById('album-producers').innerText = 'Producteurs : ' + album.producers;
+                document.getElementById('album-label').innerText = 'Label : ' + album.label;
+
+                // Générer la liste des chansons
+                var songsList = document.getElementById('album-songs');
+                album.songs.forEach(function(song) {
+                    var listItem = document.createElement('li');
+                    var link = document.createElement('a');
+                    link.href = '/chanson/' + song.id;
+                    link.innerText = song.title;
+                    listItem.appendChild(link);
+                    songsList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.log(error));
+    </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-from flask import Flask,request, render_template, redirect, url_for 
+from flask import Flask,request, render_template, redirect, jsonify
 import mysql.connector
 import datetime
 from flask_uploads import UploadSet, UploadNotAllowed, configure_uploads, IMAGES #Il faut installer flask-uploads avec pip (pip install flask-uploads)
@@ -18,22 +18,42 @@ app.config['UPLOADED_PHOTOS_MAX_SIZE'] = 16 * 1024 * 1024  # 16MB max size
 photos = UploadSet('photos', IMAGES)
 configure_uploads(app, photos)
 
-
+# Route pour la page d'accueil
 @app.route('/')
 def index():
-    cursor = db.cursor()
-    cursor.execute("SELECT Playlist.* FROM Playlist")
-    playlists = cursor.fetchall()
-    cursor.execute("SELECT Chansons.* FROM Chansons")
-    chansons = cursor.fetchall()
-    cursor.close()
-    return render_template('audioverse.html', playlists=playlists, chansons=chansons)
+    return render_template('audioverse.html')
+
+# Endpoint pour récupérer les playlists en tant que JSON
+@app.route('/api/playlists')
+def get_playlists():
+    try:
+        cursor = db.cursor()
+        cursor.execute("SELECT Playlist.* FROM Playlist")
+        playlists = cursor.fetchall()
+        cursor.close()
+
+
+        # Conversion des résultats en une liste de dictionnaires
+        playlist_data = []
+        for playlist in playlists:
+            playlist_dict = {
+                'id': playlist[0],
+                'name': playlist[1],
+                'description': playlist[2],
+                'date_creation': playlist[3].strftime('%Y-%m-%d'),  # Conversion de la date en format string
+                'image': playlist[4]
+            }
+            playlist_data.append(playlist_dict)
+
+        return jsonify(playlist_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/erreur-upload')
 def error():
     return render_template('erreur-format-de-fichier.html')
 
-@app.route('/playlist/<int:id_playlist>')
+@app.route('/api/playlist/<int:id_playlist>')
 def playlist(id_playlist):
     cursor = db.cursor()
     cursor.execute("SELECT playlist.* FROM Playlist WHERE playlist.id_playlist=%s", (id_playlist,))
@@ -345,19 +365,51 @@ def albums():
 
 @app.route('/album/<int:id_album>')
 def album(id_album):
-    cursor = db.cursor()
-    cursor.execute("SELECT Albums.*, Artistes.nom AS nom_artiste, Genres.titre AS nom_genre FROM Albums JOIN Artistes ON Albums.id_artiste = Artistes.id_artiste JOIN Genres ON Albums.id_genre = Genres.id_genre WHERE Albums.id_album = %s", (id_album,))
-    album = cursor.fetchone()
-    print(album)
-    cursor.close()
+    return render_template('album.html', id_album=id_album)
 
-    cursor = db.cursor()
-    cursor.execute("SELECT Chansons.* FROM Chansons WHERE Chansons.id_album = %s", (id_album,))
-    chansons = cursor.fetchall()
-    cursor.close()
+# Endpoint pour afficher les détails d'un album
+@app.route('/api/album/<int:id_album>')
+def get_album(id_album):
+    try:
+        # Récupérer les informations de l'album
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT Albums.*, Artistes.nom AS nom_artiste, Genres.titre AS nom_genre FROM Albums JOIN Artistes ON Albums.id_artiste = Artistes.id_artiste JOIN Genres ON Albums.id_genre = Genres.id_genre WHERE Albums.id_album = %s", (id_album,))
+        album = cursor.fetchone()
+        cursor.close()
 
-    return render_template('album.html', album=album, chansons=chansons)
+        if not album:
+            return jsonify({'error': 'Album not found'}), 404
 
+        # Récupérer les chansons de l'album
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT Chansons.* FROM Chansons WHERE Chansons.id_album = %s", (id_album,))
+        chansons = cursor.fetchall()
+        cursor.close()
+
+        album_data = {
+            'id': album[0],
+            'title': album[1],
+            'image': album[2],
+            'artist': album[9],
+            'genre': album[10],
+            'release_year': album[3],
+            'artistic_director': album[4],
+            'producers': album[5],
+            'label': album[6],
+            'songs': []
+        }
+
+        for chanson in chansons:
+            chanson_data = {
+                'id': chanson[0],
+                'title': chanson[2]
+            }
+            album_data['songs'].append(chanson_data)
+
+        return jsonify(album_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 @app.route('/artiste/<int:id_artiste>')
 def artiste(id_artiste):
     cursor = db.cursor()

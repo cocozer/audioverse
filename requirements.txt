@@ -1,0 +1,3 @@
+markupsafe==1.1.1
+flask-uploads
+Jinja2==2.11.3

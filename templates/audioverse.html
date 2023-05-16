@@ -5,30 +5,71 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-
-      <nav>
-		<a href="/">Accueil</a>
-        <a href="{{ url_for('artistes') }}">Liste des artistes</a>
-        <a href="{{ url_for('albums') }}">Albums</a>
-        <a href="{{ url_for('sons') }}">Liste des musiques</a>
-        
-		
-	</nav>
+    <nav>
+        <a href="/">Accueil</a>
+        <a href="#">Liste des artistes</a>
+        <a href="#">Albums</a>
+        <a href="#">Liste des musiques</a>
+    </nav>
 
     <main>
-        <a href="/playlist/new">Créer une nouvelle playlist</a>
+        <a href="#" id="createPlaylist">Créer une nouvelle playlist</a>
         <h1>Playlists</h1>
-        {% for playlist in playlists %}
-        <div class="playlist">
-            <div>
-                <h2>{{ playlist[1] }}</h2>
-                <img width="100" src="static/playlists_img/{{ playlist[4] }}">
-            </div>
-            <aside>
-                <a href="playlist/{{ playlist[0] }}">Modifier la playlist</a>
-            </aside>
-        </div>
-        {% endfor %}
+        <div id="playlistsContainer"></div>
+
+        <script>
+            console.log('test');
+            // Fonction pour effectuer une requête fetch vers l'endpoint /api/playlists et afficher les playlists
+            function loadPlaylists() {
+                fetch('/api/playlists')
+                    .then(response => response.json())
+                    .then(data => {
+                        const playlistsContainer = document.getElementById('playlistsContainer');
+                        playlistsContainer.innerHTML = '';
+
+                        // Parcourir les playlists et les ajouter au conteneur
+                        data.forEach(playlist => {
+                            const playlistDiv = document.createElement('div');
+                            playlistDiv.classList.add('playlist');
+
+                            const playlistContent = `
+                                <div>
+                                    <h2>${playlist.name}</h2>
+                                    <img width="100" src="static/playlists_img/${playlist.image}">
+                                </div>
+                                <aside>
+                                    <a href="#" class="editPlaylist" data-id="${playlist.id}">Modifier la playlist</a>
+                                </aside>
+                            `;
+                            playlistDiv.innerHTML = playlistContent;
+                            playlistsContainer.appendChild(playlistDiv);
+                        });
+                    });
+            }
+
+            // Appeler la fonction loadPlaylists au chargement de la page
+            document.addEventListener('DOMContentLoaded', () => {
+                loadPlaylists();
+            });
+
+            // Gérer le clic sur le lien "Créer une nouvelle playlist"
+            const createPlaylistLink = document.getElementById('createPlaylist');
+            createPlaylistLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                // Ici, vous pouvez implémenter la logique pour afficher le formulaire de création de playlist
+                console.log('Afficher le formulaire de création de playlist');
+            });
+
+            // Gérer le clic sur les liens "Modifier la playlist"
+            document.addEventListener('click', (event) => {
+                if (event.target.classList.contains('editPlaylist')) {
+                    event.preventDefault();
+                    const playlistId = event.target.getAttribute('data-id');
+                    // Ici, vous pouvez implémenter la logique pour afficher le formulaire de modification de playlist
+                    console.log(`Afficher le formulaire de modification de la playlist ${playlistId}`);
+                }
+            });
+        </script>
     </main>
-</body>
+    </body>
 </html>
