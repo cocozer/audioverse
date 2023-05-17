@@ -255,6 +255,27 @@ def sons_api():
         return jsonify(chansons_list)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/genres')
+def genres_api():
+    try:
+        cursor = db.cursor()
+        cursor.execute("SELECT Genres.* FROM Genres")
+        genres = cursor.fetchall()
+        cursor.close()
+        genres_list = []
+        
+        
+        
+        for genre in genres:
+            genre_dict = {
+                'id': genre[0],
+                'titre' : genre[1]
+            }
+            genres_list.append(genre_dict)
+        return jsonify(genres_list)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/sons/new', methods=['GET', 'POST'])
 def newsons():
@@ -324,41 +345,79 @@ def artistes():
 def chanson(id_chanson):
     return render_template('chanson.html', id_chanson=id_chanson)
 
-@app.route('/api/chanson/<int:id_chanson>')
+@app.route('/api/chanson/<int:id_chanson>', methods=['GET', 'POST'])
 def chanson_api(id_chanson):
-    try:
-        cursor = db.cursor()
-        cursor.execute("SELECT Chansons.*, Genres.titre, Artistes.nom, Albums.titre FROM Chansons JOIN Genres ON Chansons.id_genre = Genres.id_genre LEFT JOIN Artistes ON Chansons.id_artiste = Artistes.id_artiste LEFT JOIN Albums ON Chansons.id_album = Albums.id_album WHERE Chansons.id_chanson = %s", (id_chanson,))
-        chanson = cursor.fetchone()
-        cursor.close()
+    if request.method == 'GET':
+        try:
+            cursor = db.cursor()
+            cursor.execute("SELECT Chansons.*, Genres.titre, Artistes.nom, Albums.titre FROM Chansons JOIN Genres ON Chansons.id_genre = Genres.id_genre LEFT JOIN Artistes ON Chansons.id_artiste = Artistes.id_artiste LEFT JOIN Albums ON Chansons.id_album = Albums.id_album WHERE Chansons.id_chanson = %s", (id_chanson,))
+            chanson = cursor.fetchone()
+            cursor.close()
 
-        if chanson is None:
-            return jsonify({'error': 'Chanson not found'}), 404
+            if chanson is None:
+                return jsonify({'error': 'Chanson not found'}), 404
 
-        duree = chanson[4]
-        minutes = duree.seconds // 60
-        secondes = duree.seconds % 60
-        duree = "{} m : {} s".format(minutes, secondes)
+            duree = chanson[4]
+            minutes = duree.seconds // 60
+            secondes = duree.seconds % 60
+            duree = "{} m : {} s".format(minutes, secondes)
 
-        chanson_dict = {
-            'id': chanson[0],
-            'description': chanson[1],
-            'titre': chanson[2],
-            'cover': chanson[3],
-            'duree': duree,
-            'directeur_artistique': chanson[5],
-            'producteur': chanson[6],
-            'label': chanson[7],
-            'id_artiste': chanson[8],
-            'id_album': chanson[9],
-            'genre': chanson[11],
-            'nom_artiste': chanson[12],
-            'titre_album': chanson[13]
-        }
+            chanson_dict = {
+                'id': chanson[0],
+                'description': chanson[1],
+                'titre': chanson[2],
+                'cover': chanson[3],
+                'duree': duree,
+                'directeur_artistique': chanson[5],
+                'producteur': chanson[6],
+                'label': chanson[7],
+                'id_artiste': chanson[8],
+                'id_album': chanson[9],
+                'genre': chanson[11],
+                'nom_artiste': chanson[12],
+                'titre_album': chanson[13]
+            }
 
-        return jsonify(chanson_dict)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+            return jsonify(chanson_dict)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    elif request.method == 'POST':
+        try:
+            id_chanson = int(request.form['id_chanson'])
+            titre = request.form['titre']
+            description = request.form['description']
+            duree = request.form['duree']
+            directeur_artistique = request.form['directeur_artistique']
+            producteur = request.form['producteur']
+            label = request.form['label']
+            id_artiste = int(request.form['id_artiste'])
+            id_album = int(request.form['id_album'])
+            id_genre = int(request.form['id_genre'])
+
+            app.config['UPLOADED_PHOTOS_DEST'] = 'static/chansons_img' # Modification de la destination
+            photos = UploadSet('photos', IMAGES)
+            configure_uploads(app, photos)
+
+            cover = request.files.get('cover')
+            if cover:
+                try:
+                    filename = photos.save(cover)
+                    cover = filename
+                except UploadNotAllowed:
+                    return jsonify({'error': 'Upload not allowed'}), 400
+
+            cursor = db.cursor()
+            if cover:
+                cursor.execute("UPDATE Chansons SET description=%s, titre=%s, cover=%s, duree=%s, directeur_artistique=%s, producteur=%s, label=%s, id_artiste=%s, id_album=%s, id_genre=%s WHERE id_chanson=%s", (description, titre, cover, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre, id_chanson))
+            else:
+                cursor.execute("UPDATE Chansons SET description=%s, titre=%s, duree=%s, directeur_artistique=%s, producteur=%s, label=%s, id_artiste=%s, id_album=%s, id_genre=%s WHERE id_chanson=%s", (description, titre, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre, id_chanson))
+            db.commit()
+            cursor.close()
+            id_chanson = str(id_chanson)
+            return jsonify({'message': 'Chanson updated successfully'})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
 
 
 @app.route('/chanson/edit/<int:id_chanson>')
@@ -381,45 +440,6 @@ def chansonedit(id_chanson):
 
     return render_template('chanson-edit-form.html', chanson=chanson, artistes=artistes, albums=albums, genres=genres)
 
-@app.route('/chanson/edit/post', methods=['POST'])
-def chansoneditpost():
-    id_chanson = int(request.form['id_chanson'])
-    titre = request.form['titre']
-    description = request.form['description']
-    duree = request.form['duree']
-    directeur_artistique = request.form['directeur_artistique']
-    producteur = request.form['producteur']
-    label = request.form['label']
-    id_artiste = int(request.form['id_artiste'])
-    id_album = int(request.form['id_album'])
-    id_genre = int(request.form['id_genre'])
-
-    app.config['UPLOADED_PHOTOS_DEST'] = 'static/chansons_img' # Modification de la destination
-    photos = UploadSet('photos', IMAGES)
-    configure_uploads(app, photos)
-
-    cover = request.files.get('cover')
-    if cover:
-        try:
-            filename = photos.save(cover)
-            cover = filename
-        except UploadNotAllowed:
-            return redirect('/erreur-upload')
-    if not cover:
-        cursor = db.cursor()
-        cursor.execute("UPDATE Chansons SET description=%s, titre=%s, duree=%s, directeur_artistique=%s, producteur=%s, label=%s, id_artiste=%s, id_album=%s, id_genre=%s WHERE id_chanson=%s", (description, titre, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre, id_chanson))
-        db.commit()
-        cursor.close()
-        id_chanson = str(id_chanson)
-        return redirect('/chanson/'+id_chanson)
-
-    if cover:
-        cursor = db.cursor()
-        cursor.execute("UPDATE Chansons SET description=%s, titre=%s, cover=%s, duree=%s, directeur_artistique=%s, producteur=%s, label=%s, id_artiste=%s, id_album=%s, id_genre=%s WHERE id_chanson=%s", (description, titre, cover, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre, id_chanson))
-        db.commit()
-        cursor.close()
-        id_chanson = str(id_chanson)
-        return redirect('/chanson/'+id_chanson)
     
 @app.route('/chanson/delete/<int:id_chanson>')
 def chansondelete(id_chanson):
