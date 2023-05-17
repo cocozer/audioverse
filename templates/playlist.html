@@ -17,7 +17,7 @@
         <p id="playlist-description"></p>
         <p id="playlist-date"></p>
         <a id="playlist-edit-link" href="">Modifier la playlist</a>
-        <a id="playlist-delete-link" style="color:red" href="">Supprimer la playlist ATTENTION IRREVERSIBLE !!!!!!</a>
+        <button id="playlist-delete-button" style="color:red">Supprimer la playlist ATTENTION IRREVERSIBLE !!!!!!</button>
         <h2>Liste des chansons dans la playlist</h2>
         <div class="playlist">
             <ul id="songs-in-playlist"></ul>
@@ -42,7 +42,6 @@
                 document.getElementById('playlist-description').innerText = 'Description : ' + playlist.description;
                 document.getElementById('playlist-date').innerText = 'Date de création : ' + playlist.date_creation;
                 document.getElementById('playlist-edit-link').href = '/playlist/edit/' + playlist.id;
-                document.getElementById('playlist-delete-link').href = '/playlist/delete/' + playlist.id;
 
                 // Générer la liste des chansons dans la playlist
                 var songsInPlaylist = playlist.songsinplaylist;
@@ -79,6 +78,22 @@
                 });
             })
             .catch(error => console.log(error));
+        // Récupérer la référence du bouton de suppression
+        var deleteButton = document.getElementById('playlist-delete-button');
+
+        // Ajouter un écouteur d'événement pour le clic sur le bouton de suppression
+        deleteButton.addEventListener('click', function() {
+            // Faire une requête DELETE à l'API pour supprimer la playlist
+            fetch('/api/playlist/' + playlistId, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    // Afficher le message de suppression réussie
+                    console.log(data.message);
+                    // Rediriger vers la page d'accueil ou une autre page de votre choix
+                    window.location.href = '/';
+                })
+                .catch(error => console.log(error));
+        });
     </script>
 </body>
 </html>

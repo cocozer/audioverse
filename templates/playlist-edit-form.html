@@ -1,31 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Formulaire de modification de playlist</title>
-	<meta charset="utf-8">
+    <title>Formulaire d'édition de playlist</title>
+    <meta charset="utf-8">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <nav>
-		<a href="/">Accueil</a>
-		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
-		<a href="{{ url_for('albums') }}">Albums</a>
-		<a href="{{ url_for('sons') }}">Liste des musiques</a>
-	</nav>
+        <a href="/">Accueil</a>
+        <a href="{{ url_for('artistes') }}">Liste des artistes</a>
+        <a href="{{ url_for('albums') }}">Albums</a>
+        <a href="{{ url_for('sons') }}">Liste des musiques</a>
+    </nav>
     <main>
-        <h1>Modification des informations de la playlist</h1>
-        <form method="POST" enctype="multipart/form-data" action="/playlist/edit/post">
-            <div style="visibility:hidden" class="form-group">
-                <label for="id_playlist">ID Playlist</label>
-                <input type="number" name="id_playlist" id="id_playlist" class="form-control" value="{{ playlist[0] }}">
-            </div>
+        <h1>Formulaire d'édition de playlist</h1>
+        <form id="playlist-form" enctype="multipart/form-data" action="/playlist/new/post">
             <div class="form-group">
                 <label for="nom">Nom</label>
-                <input type="text" name="nom" id="nom" value="{{ playlist[1] }}" class="form-control">
+                <input type="text" name="nom" id="nom" class="form-control">
             </div>
             <div class="form-group">
                 <label for="description">Description</label>
-                <textarea name="description" id="description" class="form-control">{{ playlist[2] }}</textarea>
+                <textarea name="description" id="description" class="form-control"></textarea>
             </div>
             <div class="form-group">
                 <label for="image">Image</label>
@@ -33,7 +29,51 @@
             </div>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
         </form>
-        
     </main>
+
+    <script>
+        // Récupérer l'ID de la playlist à partir de l'URL
+        var playlistId = window.location.pathname.split('/').pop();
+
+        // Récupérer les informations de la playlist via une requête GET
+        fetch('/api/playlist/' + playlistId)
+            .then(response => response.json())
+            .then(playlist => {
+                // Remplir les champs du formulaire avec les informations de la playlist
+                document.getElementById('nom').value = playlist.name;
+                document.getElementById('description').value = playlist.description;
+            })
+            .catch(error => console.log(error));
+
+        // Écouter l'événement de soumission du formulaire
+        document.getElementById('playlist-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Récupérer les valeurs des champs du formulaire
+            var nom = document.getElementById('nom').value;
+            var description = document.getElementById('description').value;
+            var image = document.getElementById('image').files[0];
+
+            // Créer un objet FormData pour envoyer les données du formulaire
+            var formData = new FormData();
+            formData.append('id_playlist', playlistId);
+            formData.append('nom', nom);
+            formData.append('description', description);
+            formData.append('image', image);
+
+            // Envoyer une requête POST pour mettre à jour la playlist
+            fetch('/api/playlist/' + playlistId, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Rediriger vers la page de la playlist mise à jour
+                window.location.href = '/playlist/' + playlistId;
+            })
+            .catch(error => console.log(error));
+        });
+    </script>
 </body>
 </html>

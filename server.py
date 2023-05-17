@@ -57,72 +57,108 @@ def error():
 def playlist(id_playlist):
     return render_template('playlist.html', id_playlist=id_playlist)
 
-@app.route('/api/playlist/<int:id_playlist>')
+# Endpoint pour chaque playlist
+@app.route('/api/playlist/<int:id_playlist>', methods=['GET', 'POST', 'DELETE'])
 def get_playlist(id_playlist):
-    try:
-        # Récupération de la playlist
-        cursor = db.cursor()
-        cursor.execute("SELECT id_playlist, nom, description, date_creation, image_upload FROM Playlist WHERE id_playlist=%s", (id_playlist,))
-        playlist = cursor.fetchone()
-        cursor.close()
+    if request.method == 'GET':
+        try:
+            # Récupération de la playlist
+            cursor = db.cursor()
+            cursor.execute("SELECT id_playlist, nom, description, date_creation, image_upload FROM Playlist WHERE id_playlist=%s", (id_playlist,))
+            playlist = cursor.fetchone()
+            cursor.close()
 
-        if not playlist:
-            return jsonify({'error': 'Playlist not found'}), 404
+            if not playlist:
+                return jsonify({'error': 'Playlist not found'}), 404
 
-        playlist_dict = {
-            'id': playlist[0],
-            'name': playlist[1],
-            'description': playlist[2],
-            'date_creation': playlist[3].strftime('%Y-%m-%d'),  # Conversion de la date en format string
-            'image': playlist[4],
-            'songsinplaylist': [],
-            'songsnotinplaylist': []
-        }
-
-        # Récupération des chansons dans la playlist
-        cursor = db.cursor()
-        cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist INNER JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s", (id_playlist,))
-        chansons = cursor.fetchall()
-        cursor.close()
-
-        # Récupération des chansons non présentes dans la playlist
-        cursor = db.cursor()
-        cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist RIGHT JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s IS NULL", (id_playlist,))
-        chansonspasdansplaylist = cursor.fetchall()
-        cursor.close()
-
-        for chanson in chansons:
-            chanson_dict = {
-                'id': chanson[11],
-                'name': chanson[2],
-                'id_playlist': chanson[12],
+            playlist_dict = {
+                'id': playlist[0],
+                'name': playlist[1],
+                'description': playlist[2],
+                'date_creation': playlist[3].strftime('%Y-%m-%d'),  # Conversion de la date en format string
+                'image': playlist[4],
+                'songsinplaylist': [],
+                'songsnotinplaylist': []
             }
-            playlist_dict['songsinplaylist'].append(chanson_dict)
 
-        for chanson in chansonspasdansplaylist:
-            chanson_dict = {
-                'id': chanson[0],
-                'name': chanson[2]
-            }
-            playlist_dict['songsnotinplaylist'].append(chanson_dict)
+            # Récupération des chansons dans la playlist
+            cursor = db.cursor()
+            cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist INNER JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s", (id_playlist,))
+            chansons = cursor.fetchall()
+            cursor.close()
 
-        return jsonify(playlist_dict)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-    
+            # Récupération des chansons non présentes dans la playlist
+            cursor = db.cursor()
+            cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist RIGHT JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s IS NULL", (id_playlist,))
+            chansonspasdansplaylist = cursor.fetchall()
+            cursor.close()
+
+            for chanson in chansons:
+                chanson_dict = {
+                    'id': chanson[11],
+                    'name': chanson[2],
+                    'id_playlist': chanson[12],
+                }
+                playlist_dict['songsinplaylist'].append(chanson_dict)
+
+            for chanson in chansonspasdansplaylist:
+                chanson_dict = {
+                    'id': chanson[0],
+                    'name': chanson[2]
+                }
+                playlist_dict['songsnotinplaylist'].append(chanson_dict)
+
+            return jsonify(playlist_dict)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    elif request.method == 'POST':
+        id_playlist = int(request.form['id_playlist'])
+        nom = request.form['nom']
+        description = request.form['description']
+
+        app.config['UPLOADED_PHOTOS_DEST'] = 'static/playlists_img' # Modification de la destination
+        photos = UploadSet('photos', IMAGES)
+        configure_uploads(app, photos)
+        image = request.files.get('image')
+        if image:
+            try:
+                filename = photos.save(image)
+                image = filename
+            except UploadNotAllowed:
+                return redirect('/erreur-upload')
+        if not image:
+            cursor = db.cursor()
+            cursor.execute("UPDATE Playlist SET nom=%s, description=%s WHERE id_playlist=%s", (nom, description, id_playlist))
+            db.commit()
+            cursor.close()
+            id_playlist = str(id_playlist)
+            return jsonify({'message': 'Playlist mise à jour avec succès'})
+        if image:
+            cursor = db.cursor()
+            cursor.execute("UPDATE Playlist SET nom=%s, description=%s, image_upload=%s WHERE id_playlist=%s", (nom, description, image, id_playlist))
+            db.commit()
+            cursor.close()
+            id_playlist = str(id_playlist)
+            return jsonify({'message': 'Playlist mise à jour avec succès'})
+    elif request.method == 'DELETE':
+        try:
+            # Supprimer la playlist de la base de données
+            cursor = db.cursor()
+            cursor.execute("DELETE FROM Playlist WHERE id_playlist=%s", (id_playlist,))
+            db.commit()
+            cursor.close()
+
+            return jsonify({'message': 'Playlist deleted successfully'})
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
 @app.route('/playlist/new')
-def playlistcreate():
-    cursor = db.cursor()
-    cursor.execute("SELECT MAX(id_playlist) FROM playlist")
-    lastplaylist = cursor.fetchone()
-    
-    cursor.close()
-
-    return render_template('new-playlist-form.html', newid=lastplaylist[0]+1)
+def newplaylist():
+    return render_template('new-playlist-form.html')
     
 @app.route('/playlist/new/post', methods=['POST'])
 def playlistnewpost():
-    id_playlist = int(request.form['id_playlist'])
     nom = request.form['nom']
     description = request.form['description']
 
@@ -139,65 +175,22 @@ def playlistnewpost():
     
     date = datetime.date.today()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO Playlist VALUES(%s, %s, %s, %s, %s)", (id_playlist, nom, description, date, image, ))
+    cursor.execute("INSERT INTO Playlist (nom, description, date_creation, image_upload) VALUES(%s, %s, %s, %s)", (nom, description, date, image, ))
     db.commit()
     cursor.close()
-    id_playlist = str(id_playlist)
+
+    cursor = db.cursor()
+    cursor.execute("SELECT MAX(id_playlist) FROM Playlist")
+    id_playlist = cursor.fetchone()
+    cursor.close()
+
+    id_playlist = str(id_playlist[0])
     return redirect('/playlist/'+id_playlist)
     
 @app.route('/playlist/edit/<int:id_playlist>')
 def playlistedit(id_playlist):
-    cursor = db.cursor()
-    cursor.execute("SELECT playlist.* FROM Playlist WHERE playlist.id_playlist=%s", (id_playlist,))
-    playlist = cursor.fetchone()
-    cursor.close()
-
     return render_template('playlist-edit-form.html', playlist=playlist)
     
-@app.route('/playlist/edit/post', methods=['POST'])
-def playlisteditpost():
-    id_playlist = int(request.form['id_playlist'])
-    nom = request.form['nom']
-    description = request.form['description']
-
-    app.config['UPLOADED_PHOTOS_DEST'] = 'static/playlists_img' # Modification de la destination
-    photos = UploadSet('photos', IMAGES)
-    configure_uploads(app, photos)
-    image = request.files.get('image')
-    if image:
-        try:
-            filename = photos.save(image)
-            image = filename
-        except UploadNotAllowed:
-            return redirect('/erreur-upload')
-    if not image:
-        cursor = db.cursor()
-        cursor.execute("UPDATE Playlist SET nom=%s, description=%s WHERE id_playlist=%s", (nom, description, id_playlist))
-        db.commit()
-        cursor.close()
-        id_playlist = str(id_playlist)
-        return redirect('/playlist/'+id_playlist)
-    if image:
-        cursor = db.cursor()
-        cursor.execute("UPDATE Playlist SET nom=%s, description=%s, image_upload=%s WHERE id_playlist=%s", (nom, description, image, id_playlist))
-        db.commit()
-        cursor.close()
-        id_playlist = str(id_playlist)
-        return redirect('/playlist/'+id_playlist)
-
-@app.route('/playlist/delete/<int:id_playlist>')
-def playlistdelete(id_playlist):
-    cursor = db.cursor()
-
-    cursor.execute("DELETE FROM Playlist_chansons WHERE id_playlist=%s", (id_playlist,))
-    db.commit()
-
-    cursor.execute("DELETE FROM Playlist WHERE playlist.id_playlist=%s", (id_playlist,))
-    db.commit()
-    cursor.close()
-
-    return redirect('/')
-
 
 @app.route('/add/<int:id_playlist>/<int:id_chanson>')
 def add(id_chanson, id_playlist):
@@ -224,7 +217,6 @@ def sons():
 
     chansons_par_genre = {}
     for chanson in chansons:
-        print(chanson)
         if chanson[11] not in chansons_par_genre:
             chansons_par_genre[chanson[11]] = []
         chansons_par_genre[chanson[11]].append(chanson)
@@ -394,7 +386,6 @@ def albums():
 
     albums_par_artiste = {}
     for album in albums:
-        print(albums)
         if album[6] not in albums_par_artiste:
             albums_par_artiste[album[6]] = []
         albums_par_artiste[album[6]].append(album)
@@ -454,7 +445,6 @@ def artiste(id_artiste):
 
     cursor.execute("SELECT Albums.*, Genres.titre AS nom_genre FROM Albums JOIN Genres ON Albums.id_genre = Genres.id_genre WHERE Albums.id_artiste = %s", (id_artiste,))
     albums = cursor.fetchall()
-    print(albums)
 
     cursor.execute("SELECT Chansons.*, Albums.titre AS nom_album FROM Chansons JOIN Albums ON Chansons.id_album = Albums.id_album WHERE Chansons.id_artiste = %s", (id_artiste,))
     chansons = cursor.fetchall()
@@ -467,16 +457,4 @@ def artiste(id_artiste):
 if __name__ == '__main__':
     app.run(debug=True)
 
-
-#Exemple d'insert de musique et albums
-#INSERT INTO Albums (id_album,titre, cover, annee_sortie, directeur_artistique, producteurs, label, id_artiste, id_genre) VALUES ('2','A Night at the Opera', 'queen_cover.jpg', 1975, 'Roy Thomas Baker', 'Roy Thomas Baker, Queen', 'EMI, Elektra', 1, 1);
-#INSERT INTO Chansons (id_chanson,titre, description, cover, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre) VALUES ('2','Bohemian Rhapsody', 'Single de l\'album "A Night at the Opera" sorti en 1975', 'https://example.com/bohemian_rhapsody_cover.jpg', '00:05:54', 'Roy Thomas Baker', 'Queen', 'EMI Records', 2, 2, 2);
-# INSERT INTO Chansons (id_chanson, titre, description, cover, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre)
-# VALUES ('6', 'Somebody to Love', 'Premier single de lalbum A Night at the Opera sorti en 1976', 'https://example.com/somebody_to_love_cover.jpg', '00:04:58', 'Roy Thomas Baker', 'Queen', 'EMI Records', 2, 2, 2);
-
-# INSERT INTO Chansons (id_chanson, titre, description, cover, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre)
-# VALUES ('7', 'Good Old-Fashioned Lover Boy', 'Single de lalbum A Day at the Races sorti en 1977', 'https://example.com/good_old_fashioned_lover_boy_cover.jpg', '00:02:54', 'Roy Thomas Baker', 'Queen', 'EMI Records', 2, 2, 2);
-
-# INSERT INTO Chansons (id_chanson, titre, description, cover, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre)
-# VALUES ('8', 'Im in Love with My Car', 'Face B du single Bohemian Rhapsody sorti en 1975', 'https://example.com/im_in_love_with_my_car_cover.jpg', '00:03:05', 'Roy Thomas Baker', 'Queen', 'EMI Records', 2, 2, 2);
 

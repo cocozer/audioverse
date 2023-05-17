@@ -7,13 +7,13 @@
 <body>
     <nav>
         <a href="/">Accueil</a>
-        <a href="#">Liste des artistes</a>
-        <a href="#">Albums</a>
-        <a href="#">Liste des musiques</a>
+        <a href="{{ url_for('artistes') }}">Liste des artistes</a>
+        <a href="{{ url_for('albums') }}">Albums</a>
+        <a href="{{ url_for('sons') }}">Liste des musiques</a>
     </nav>
 
     <main>
-        <a href="#" id="createPlaylist">Créer une nouvelle playlist</a>
+        <a href="{{ url_for('newplaylist') }}" id="createPlaylist">Créer une nouvelle playlist</a>
         <h1>Playlists</h1>
         <div id="playlistsContainer"></div>
 
@@ -37,7 +37,7 @@
                                     <img width="100" src="static/playlists_img/${playlist.image}">
                                 </div>
                                 <aside>
-                                    <a href="#" class="editPlaylist" data-id="${playlist.id}">Modifier la playlist</a>
+                                    <a href="/playlist/${playlist.id}" class="editPlaylist" data-id="${playlist.id}">Modifier la playlist</a>
                                 </aside>
                             `;
                             playlistDiv.innerHTML = playlistContent;
@@ -51,23 +51,7 @@
                 loadPlaylists();
             });
 
-            // Gérer le clic sur le lien "Créer une nouvelle playlist"
-            const createPlaylistLink = document.getElementById('createPlaylist');
-            createPlaylistLink.addEventListener('click', (event) => {
-                event.preventDefault();
-                // Ici, vous pouvez implémenter la logique pour afficher le formulaire de création de playlist
-                console.log('Afficher le formulaire de création de playlist');
-            });
-
-            // Gérer le clic sur les liens "Modifier la playlist"
-            document.addEventListener('click', (event) => {
-                if (event.target.classList.contains('editPlaylist')) {
-                    event.preventDefault();
-                    const playlistId = event.target.getAttribute('data-id');
-                    // Ici, vous pouvez implémenter la logique pour afficher le formulaire de modification de playlist
-                    console.log(`Afficher le formulaire de modification de la playlist ${playlistId}`);
-                }
-            });
+            
         </script>
     </main>
     </body>
