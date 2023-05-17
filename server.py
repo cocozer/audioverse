@@ -322,20 +322,44 @@ def artistes():
 
 @app.route('/chanson/<int:id_chanson>')
 def chanson(id_chanson):
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM Chansons WHERE id_chanson=%s", (id_chanson,))
-    chanson = cursor.fetchone()
+    return render_template('chanson.html', id_chanson=id_chanson)
 
-    cursor.execute("SELECT nom FROM Artistes WHERE id_artiste=%s", (chanson[8],))
-    artiste = cursor.fetchone()[0]
+@app.route('/api/chanson/<int:id_chanson>')
+def chanson_api(id_chanson):
+    try:
+        cursor = db.cursor()
+        cursor.execute("SELECT Chansons.*, Genres.titre, Artistes.nom, Albums.titre FROM Chansons JOIN Genres ON Chansons.id_genre = Genres.id_genre LEFT JOIN Artistes ON Chansons.id_artiste = Artistes.id_artiste LEFT JOIN Albums ON Chansons.id_album = Albums.id_album WHERE Chansons.id_chanson = %s", (id_chanson,))
+        chanson = cursor.fetchone()
+        cursor.close()
 
-    cursor.execute("SELECT titre FROM Albums WHERE id_album=%s", (chanson[9],))
-    album = cursor.fetchone()[0]
+        if chanson is None:
+            return jsonify({'error': 'Chanson not found'}), 404
 
-    cursor.execute("SELECT titre FROM Genres WHERE id_genre=%s", (chanson[10],))
-    genre = cursor.fetchone()[0]
+        duree = chanson[4]
+        minutes = duree.seconds // 60
+        secondes = duree.seconds % 60
+        duree = "{} m : {} s".format(minutes, secondes)
 
-    return render_template('chanson.html', chanson=chanson, artiste=artiste, album=album, genre=genre)
+        chanson_dict = {
+            'id': chanson[0],
+            'description': chanson[1],
+            'titre': chanson[2],
+            'cover': chanson[3],
+            'duree': duree,
+            'directeur_artistique': chanson[5],
+            'producteur': chanson[6],
+            'label': chanson[7],
+            'id_artiste': chanson[8],
+            'id_album': chanson[9],
+            'genre': chanson[11],
+            'nom_artiste': chanson[12],
+            'titre_album': chanson[13]
+        }
+
+        return jsonify(chanson_dict)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/chanson/edit/<int:id_chanson>')
 def chansonedit(id_chanson):

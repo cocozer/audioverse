@@ -14,18 +14,42 @@
         <a href="{{ url_for('sons') }}">Liste des musiques</a>
     </nav>
     <main>
-        <h1>{{ chanson[2] }}</h1>
-        <img src="/static/chansons_img/{{ chanson[3] }}" alt="{{ chanson[2] }}" width="300" height="300">
-        <a href="/chanson/edit/{{ chanson[0] }}">Modifier la chanson</a>
-        <a style="color:red" href="/chanson/delete/{{ chanson[0] }}">Supprimer la chanson ATTENTION IRREVERSIBLE !!!!!!</a>
-        <p>Description : {{ chanson[1] }}</p>
-        <p>Durée : {{ chanson[4] }}</p>
-        <p>Directeur artistique : {{ chanson[5] }}</p>
-        <p>Producteur : {{ chanson[6] }}</p>
-        <p>Label : {{ chanson[7] }}</p>
-        <p>Artiste : {{ artiste }}</p>
-        <p>Album : <a href="/album/{{ chanson[9] }}">{{ album }}</a></p>
-        <p>Genre : {{ genre }}</p>
+        <h1 id="chanson-title"></h1>
+        <img id="chanson-image" src="" alt="" width="300" height="300">
+        <a href="#" id="edit-link">Modifier la chanson</a>
+        <a style="color:red" href="#" id="delete-link">Supprimer la chanson ATTENTION IRREVERSIBLE !!!!!!</a>
+        <p id="description"></p>
+        <p id="duree"></p>
+        <p id="directeur-artistique"></p>
+        <p id="producteur"></p>
+        <p id="label"></p>
+        <p id="artiste"></p>
+        <p id="album"></p>
+        <p id="genre"></p>
     </main>
+
+    <script>
+        const chansonId = window.location.pathname.split('/').pop();
+        const chansonUrl = `/api/chanson/${chansonId}`;
+
+        fetch(chansonUrl)
+            .then(response => response.json())
+            .then(chanson => {
+                document.getElementById('chanson-title').innerText = chanson.titre;
+                document.getElementById('chanson-image').src = `/static/chansons_img/${chanson.cover}`;
+                document.getElementById('chanson-image').alt = chanson.titre;
+                document.getElementById('edit-link').href = `/chanson/edit/${chanson.id}`;
+                document.getElementById('delete-link').href = `/chanson/delete/${chanson.id}`;
+                document.getElementById('description').innerText = `Description : ${chanson.description}`;
+                document.getElementById('duree').innerText = `Durée : ${chanson.duree}`;
+                document.getElementById('directeur-artistique').innerText = `Directeur artistique : ${chanson.directeur_artistique}`;
+                document.getElementById('producteur').innerText = `Producteur : ${chanson.producteur}`;
+                document.getElementById('label').innerText = `Label : ${chanson.label}`;
+                document.getElementById('artiste').innerHTML = `Artiste : <a href="/artiste/${chanson.id_artiste}">${chanson.nom_artiste}</a>`;
+                document.getElementById('album').innerHTML = `Album : <a href="/album/${chanson.id_album}">${chanson.titre_album}</a>`;
+                document.getElementById('genre').innerText = `Genre : ${chanson.genre}`;
+            })
+            .catch(error => console.log(error));
+    </script>
 </body>
 </html>
