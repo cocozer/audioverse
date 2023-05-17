@@ -181,6 +181,7 @@ def get_playlist(id_playlist):
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
+    
 @app.route('/playlist/new')
 def newplaylist():
     return render_template('new-playlist-form.html')
@@ -340,36 +341,29 @@ def artistes_api():
         cursor.execute("SELECT Artistes.* FROM Artistes")
         artistes = cursor.fetchall()
         cursor.close()
+        
         artistes_list = []
         
-        
-        
         for artiste in artistes:
-            if str(artiste[7]) == 'None':
-                artiste_dict = {
-                    'id': artiste[0],
-                    'nom' : artiste[1],
-                    'genre' : artiste[2],
-                    'photo' : artiste[3],
-                    'biographie' : artiste[4],
-                    'nationalite' : artiste[5],
-                    'date_naissance' : artiste[6].strftime('%Y-%m-%d'),
-                    'date_mort' : 'X',
-                    'genre_influent' : artiste[8]
-                }
-            elif str(artiste[7]) != 'None':
-                artiste_dict = {
-                    'id': artiste[0],
-                    'nom' : artiste[1],
-                    'genre' : artiste[2],
-                    'photo' : artiste[3],
-                    'biographie' : artiste[4],
-                    'nationalite' : artiste[5],
-                    'date_naissance' : artiste[6].strftime('%Y-%m-%d'),
-                    'date_mort' : artiste[7].strftime('%Y-%m-%d'),
-                    'genre_influent' : artiste[8]
-                }
+            artiste_dict = {
+                'id': artiste[0],
+                'nom': artiste[1],
+                'genre': artiste[2],
+                'photo': artiste[3],
+                'biographie': artiste[4],
+                'nationalite': artiste[5],
+                'date_naissance': artiste[6].strftime('%Y-%m-%d'),
+            }
+            
+            if artiste[7] is None:
+                artiste_dict['date_mort'] = 'X'
+            else:
+                artiste_dict['date_mort'] = artiste[7].strftime('%Y-%m-%d')
+            
+            artiste_dict['genre_influent'] = artiste[8]
+            
             artistes_list.append(artiste_dict)
+        
         return jsonify(artistes_list)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -467,7 +461,7 @@ def chanson_api(id_chanson):
 
 @app.route('/chanson/edit/<int:id_chanson>')
 def chansonedit(id_chanson):
-    return render_template('chanson-edit-form.html', id_chanson=id_chanson)
+    return render_template('chanson-edit-form.html', chanson=chanson)
 
     
 @app.route('/chanson/delete/<int:id_chanson>')
@@ -538,7 +532,7 @@ def get_album(id_album):
                 'title': chanson[2]
             }
             album_data['songs'].append(chanson_data)
-
+        
         return jsonify(album_data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
