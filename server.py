@@ -184,10 +184,7 @@ def get_playlist(id_playlist):
 @app.route('/playlist/new')
 def newplaylist():
     return render_template('new-playlist-form.html')
-    
-@app.route('/api/playlists', methods=['POST'])
 
-    
 @app.route('/playlist/edit/<int:id_playlist>')
 def playlistedit(id_playlist):
     return render_template('playlist-edit-form.html', playlist=playlist)
@@ -334,18 +331,54 @@ def newsonspost():
 
 @app.route('/artistes')
 def artistes():
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM Artistes")
-    artistes = cursor.fetchall()
-    cursor.close()
-
     return render_template('liste_artistes.html', artistes=artistes)
+
+@app.route('/api/artistes')
+def artistes_api():
+    try:
+        cursor = db.cursor()
+        cursor.execute("SELECT Artistes.* FROM Artistes")
+        artistes = cursor.fetchall()
+        cursor.close()
+        artistes_list = []
+        
+        
+        
+        for artiste in artistes:
+            if str(artiste[7]) == 'None':
+                artiste_dict = {
+                    'id': artiste[0],
+                    'nom' : artiste[1],
+                    'genre' : artiste[2],
+                    'photo' : artiste[3],
+                    'biographie' : artiste[4],
+                    'nationalite' : artiste[5],
+                    'date_naissance' : artiste[6].strftime('%Y-%m-%d'),
+                    'date_mort' : 'X',
+                    'genre_influent' : artiste[8]
+                }
+            elif str(artiste[7]) != 'None':
+                artiste_dict = {
+                    'id': artiste[0],
+                    'nom' : artiste[1],
+                    'genre' : artiste[2],
+                    'photo' : artiste[3],
+                    'biographie' : artiste[4],
+                    'nationalite' : artiste[5],
+                    'date_naissance' : artiste[6].strftime('%Y-%m-%d'),
+                    'date_mort' : artiste[7].strftime('%Y-%m-%d'),
+                    'genre_influent' : artiste[8]
+                }
+            artistes_list.append(artiste_dict)
+        return jsonify(artistes_list)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/chanson/<int:id_chanson>')
 def chanson(id_chanson):
     return render_template('chanson.html', id_chanson=id_chanson)
 
-@app.route('/api/chanson/<int:id_chanson>', methods=['GET', 'POST'])
+@app.route('/api/chanson/<int:id_chanson>', methods=['GET', 'POST','DELETE'])
 def chanson_api(id_chanson):
     if request.method == 'GET':
         try:
@@ -417,28 +450,24 @@ def chanson_api(id_chanson):
             return jsonify({'message': 'Chanson updated successfully'})
         except Exception as e:
             return jsonify({'error': str(e)}), 500
+    elif request.method == 'DELETE':
+        try:
+            # Supprimer la chanson de la base de données
+            cursor = db.cursor()
+            cursor.execute("DELETE FROM Chansons WHERE id_chanson=%s", (id_chanson,))
+            db.commit()
+            cursor.close()
+
+            return jsonify({'message': 'Song deleted successfully'})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
 
 
 
 @app.route('/chanson/edit/<int:id_chanson>')
 def chansonedit(id_chanson):
-    cursor = db.cursor()
-
-    cursor.execute("SELECT * FROM Chansons WHERE chansons.id_chanson=%s", (id_chanson,))
-    chanson = cursor.fetchone()
-
-    cursor.execute("SELECT * FROM Artistes")
-    artistes = cursor.fetchall()
-
-    cursor.execute("SELECT * FROM Albums")
-    albums = cursor.fetchall()
-
-    cursor.execute("SELECT * FROM Genres")
-    genres = cursor.fetchall()
-
-    cursor.close()
-
-    return render_template('chanson-edit-form.html', chanson=chanson, artistes=artistes, albums=albums, genres=genres)
+    return render_template('chanson-edit-form.html', id_chanson=id_chanson)
 
     
 @app.route('/chanson/delete/<int:id_chanson>')

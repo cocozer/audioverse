@@ -1,46 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Toutes les chansons par genre</title>
-	<meta charset="utf-8">
+    <title>Toutes les chansons par genre</title>
+    <meta charset="utf-8">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <nav>
-		<a href="/">Accueil</a>
-		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
-		<a href="{{ url_for('albums') }}">Albums</a>
-		<a href="{{ url_for('sons') }}">Liste des musiques</a>
-	</nav>
-  <main>
-    <h1>Liste des artistes</h1>
-    <form style="display:flex; justify-content:space-between">
-      
-    </form>
-    <table>
-        <thead>
-          <tr>
-            <th>Photo</th>
-            <th>Nom</th>
-            <th>Genre</th>
-            <th>Biographie</th>
-            <th>Nationalité</th>
-            <th>Date de naissance</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for artiste in artistes %}
-            <tr>
-              <td><img src="/static/artistes_img/{{ artiste[3] }}" alt="{{ artiste[1] }}" width="100"></td>
-              <td><a href ="/artiste/{{ artiste[0] }}">{{ artiste[1] }}</a></td>
-              <td>{{ artiste[2] }}</td>
-              <td>{{ artiste[4] }}</td>
-              <td>{{ artiste[5] }}</td>
-              <td>{{ artiste[6] }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+        <a href="/">Accueil</a>
+        <a href="{{ url_for('artistes') }}">Liste des artistes</a>
+        <a href="{{ url_for('albums') }}">Albums</a>
+        <a href="{{ url_for('sons') }}">Liste des musiques</a>
+    </nav>
+    <main>
+        <h1>Liste des artistes</h1>
+        <form style="display:flex; justify-content:space-between">
+          
+        </form>
+        <table id="artistes-table">
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>Nom</th>
+                    <th>Genre</th>
+                    <th>Biographie</th>
+                    <th>Nationalité</th>
+                    <th>Date de naissance</th>
+                    <th>Date de mort</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </main>
+
+    <script>
+        function formatDate(date) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(date).toLocaleDateString(undefined, options);
+        }
+
+        fetch('/api/artistes')
+            .then(response => response.json())
+            .then(data => {
+                const artistesTable = document.getElementById('artistes-table');
+
+                data.forEach(artiste => {
+                    const tr = document.createElement('tr');
+                    const photoTd = document.createElement('td');
+                    const photoImg = document.createElement('img');
+                    const nomTd = document.createElement('td');
+                    const genreTd = document.createElement('td');
+                    const biographieTd = document.createElement('td');
+                    const nationaliteTd = document.createElement('td');
+                    const dateNaissanceTd = document.createElement('td');
+                    const dateMortTd = document.createElement('td');
+
+                    photoImg.src = `/static/artistes_img/${artiste.photo}`;
+                    photoImg.alt = artiste.nom;
+                    photoImg.width = 100;
+
+                    photoTd.appendChild(photoImg);
+                    nomTd.innerHTML = `<a href="/artiste/${artiste.id}">${artiste.nom}</a>`;
+                    genreTd.textContent = artiste.genre;
+                    biographieTd.textContent = artiste.biographie.slice(0, 50) + '...';
+                    nationaliteTd.textContent = artiste.nationalite;
+                    dateNaissanceTd.textContent = formatDate(artiste.date_naissance);
+                    dateMortTd.textContent = artiste.date_mort;
+
+                    tr.appendChild(photoTd);
+                    tr.appendChild(nomTd);
+                    tr.appendChild(genreTd);
+                    tr.appendChild(biographieTd);
+                    tr.appendChild(nationaliteTd);
+                    tr.appendChild(dateNaissanceTd);
+                    tr.appendChild(dateMortTd);
+
+                    artistesTable.querySelector('tbody').appendChild(tr);
+                });
+            })
+            .catch(error => console.error(error));
+    </script>
 </body>
 </html>

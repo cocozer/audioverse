@@ -39,7 +39,16 @@
                 document.getElementById('chanson-image').src = `/static/chansons_img/${chanson.cover}`;
                 document.getElementById('chanson-image').alt = chanson.titre;
                 document.getElementById('edit-link').href = `/chanson/edit/${chanson.id}`;
-                document.getElementById('delete-link').href = `/chanson/delete/${chanson.id}`;
+                document.getElementById('delete-link').addEventListener('click', () => {
+                    fetch(`/api/chanson/${chanson.id}`, { method: 'DELETE' })
+                        .then(response => {
+                            if (response.ok) {
+                                // Rediriger vers la route 'sons' après la suppression
+                                window.location.href = "{{ url_for('sons') }}";
+                            }
+                        })
+                        .catch(error => console.log(error));
+                });
                 document.getElementById('description').innerText = `Description : ${chanson.description}`;
                 document.getElementById('duree').innerText = `Durée : ${chanson.duree}`;
                 document.getElementById('directeur-artistique').innerText = `Directeur artistique : ${chanson.directeur_artistique}`;
