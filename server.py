@@ -219,20 +219,44 @@ def remove_from_playlist(id_playlist, id_chanson):
 
 @app.route('/sons')
 def sons():
-    cursor = db.cursor()
-    cursor.execute("SELECT Chansons.*, Genres.titre, Artistes.nom AS nom_artiste, Albums.titre AS titre_album FROM Chansons JOIN Genres ON Chansons.id_genre = Genres.id_genre LEFT JOIN Artistes ON Chansons.id_artiste = Artistes.id_artiste LEFT JOIN Albums ON Chansons.id_album = Albums.id_album ORDER BY Genres.titre")
-    chansons = cursor.fetchall()
-    cursor.close()
+    return render_template('liste_sons.html')
 
-    chansons_par_genre = {}
-    for chanson in chansons:
-        if chanson[11] not in chansons_par_genre:
-            chansons_par_genre[chanson[11]] = []
-        chansons_par_genre[chanson[11]].append(chanson)
 
-    return render_template('liste_sons.html', chansons_par_genre=chansons_par_genre)
+@app.route('/api/sons')
+def sons_api():
+    try:
+        cursor = db.cursor()
+        cursor.execute("SELECT Chansons.*, Genres.titre, Artistes.nom AS nom_artiste, Albums.titre AS titre_album FROM Chansons JOIN Genres ON Chansons.id_genre = Genres.id_genre LEFT JOIN Artistes ON Chansons.id_artiste = Artistes.id_artiste LEFT JOIN Albums ON Chansons.id_album = Albums.id_album ORDER BY Genres.titre, artistes.id_artiste")
+        chansons = cursor.fetchall()
+        cursor.close()
+        chansons_list = []
+        
+        
+        
+        for chanson in chansons:
 
-@app.route('/sons/new')
+            duree = chanson[4]
+            print(duree)
+            minutes = duree.seconds // 60  # Division entière pour obtenir les minutes
+            secondes = duree.seconds % 60  # Modulo pour obtenir les secondes restantes
+            duree = "{} m : {} s".format(minutes, secondes)
+            
+            chanson_dict = {
+                'id': chanson[0],
+                'description' : chanson[1],
+                'titre': chanson[2],
+                'cover': chanson[3],
+                'duree': duree,
+                'genre': chanson[11],
+                'nom_artiste': chanson[12],
+                'titre_album': chanson[13]
+            }
+            chansons_list.append(chanson_dict)
+        return jsonify(chansons_list)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/sons/new', methods=['GET', 'POST'])
 def newsons():
     cursor = db.cursor()
 

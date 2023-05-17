@@ -23,26 +23,58 @@
                     <th>Artiste</th>
                     <th>Album</th>
                     <th>Durée</th>
+                    <th>Genre</th>
+                    <th>Description</th>
+                    <th>Cover</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for genre, chansons in chansons_par_genre.items() %}
-                <tr>
-                    <th colspan="5">{{ genre }}</th>
-                </tr>
-                {% for chanson in chansons %}
-                <tr>
-                    <td>{{ chanson[0] }}</td>
-                    <td><a href="/chanson/{{ chanson[0] }}">{{ chanson[2] }}</a>
-                    </td>
-                    <td>{{ chanson[12] }}</td>
-                    <td>{{ chanson[13] }}</td>
-                    <td>{{ chanson[4] }}</td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
+            <tbody id="chansons-body">
             </tbody>
         </table>
     </main>
+
+    <script>
+        // Fetch songs
+        fetch('/api/sons')
+            .then(response => response.json())
+            .then(songs => {
+                console.log(songs);
+                songs.forEach(song => {
+                    const songRow = document.createElement('tr');
+                    const songId = document.createElement('td');
+                    const songTitle = document.createElement('td');
+                    const songArtist = document.createElement('td');
+                    const songAlbum = document.createElement('td');
+                    const songDuration = document.createElement('td');
+                    const songGenre = document.createElement('td');
+                    const songDescription = document.createElement('td');
+                    const songCover = document.createElement('td');
+                    
+                    const songLink = document.createElement('a');
+                    songId.innerText = song.id;
+                    songLink.href = '/chanson/' + song.id;
+                    songLink.innerText = song.titre;
+                    songTitle.appendChild(songLink);
+                    songArtist.innerText = song.nom_artiste;
+                    songAlbum.innerText = song.titre_album;
+                    songDuration.innerText = song.duree;
+                    songGenre.innerText = song.genre;
+                    songDescription.innerText = song.description;
+                    songCover.innerHTML = `<img width="50px"src="/static/chansons_img/${song.cover}" alt="${song.titre}">`;
+                    
+                    songRow.appendChild(songId);
+                    songRow.appendChild(songTitle);
+                    songRow.appendChild(songArtist);
+                    songRow.appendChild(songAlbum);
+                    songRow.appendChild(songDuration);
+                    songRow.appendChild(songGenre);
+                    songRow.appendChild(songDescription);
+                    songRow.appendChild(songCover);
+                    
+                    document.getElementById('chansons-body').appendChild(songRow);
+                });
+            })
+            .catch(error => console.log(error));
+    </script>
 </body>
 </html>
