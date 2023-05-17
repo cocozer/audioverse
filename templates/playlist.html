@@ -29,8 +29,8 @@
 
     <script>
         // Récupérer l'ID de la playlist à partir de l'URL
-       
         var playlistId = window.location.pathname.split('/').pop();
+
         // Faire une requête GET à l'API pour obtenir les informations de la playlist
         fetch('/api/playlist/' + playlistId)
             .then(response => response.json())
@@ -53,8 +53,11 @@
                     listItem.appendChild(songName);
 
                     var removeLink = document.createElement('a');
-                    removeLink.href = '/remove/' + song.id + '/' + playlist.id;
-                    removeLink.innerText = 'Retirer';
+                    removeLink.href = '#';
+                    removeLink.innerText = ' Retirer';
+                    removeLink.addEventListener('click', function() {
+                        removeSongFromPlaylist(song.id, playlist.id);
+                    });
                     listItem.appendChild(removeLink);
 
                     songsInPlaylistContainer.appendChild(listItem);
@@ -70,14 +73,40 @@
                     listItem.appendChild(songName);
 
                     var addLink = document.createElement('a');
-                    addLink.href = '/add/' + playlist.id + '/' + song.id;
-                    addLink.innerText = 'Ajouter';
+                    addLink.href = '#';
+                    addLink.innerText = ' Ajouter';
+                    addLink.addEventListener('click', function() {
+                        addSongToPlaylist(playlist.id, song.id);
+                    });
                     listItem.appendChild(addLink);
 
                     songsNotInPlaylistContainer.appendChild(listItem);
                 });
             })
             .catch(error => console.log(error));
+
+        function addSongToPlaylist(playlistId, songId) {
+            fetch('/api/playlist/add/' + playlistId + '/' + songId, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    // Recharger la page pour afficher les mises à jour
+                    location.reload();
+                })
+                .catch(error => console.log(error));
+        }
+
+        function removeSongFromPlaylist(songId, playlistId) {
+            fetch('/api/playlist/remove/' + playlistId + '/' + songId, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    // Recharger la page pour afficher les mises à jour
+                    location.reload();
+                })
+                .catch(error => console.log(error));
+        }
+
         // Récupérer la référence du bouton de suppression
         var deleteButton = document.getElementById('playlist-delete-button');
 

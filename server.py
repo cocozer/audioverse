@@ -157,8 +157,8 @@ def get_playlist(id_playlist):
 def newplaylist():
     return render_template('new-playlist-form.html')
     
-@app.route('/playlist/new/post', methods=['POST'])
-def playlistnewpost():
+@app.route('/api/playlists', methods=['POST'])
+def create_playlist():
     nom = request.form['nom']
     description = request.form['description']
 
@@ -171,7 +171,7 @@ def playlistnewpost():
             filename = photos.save(image)
             image = filename
         except UploadNotAllowed:
-            return redirect('/erreur-upload')
+            return jsonify({'error': 'Upload not allowed'}), 400
     
     date = datetime.date.today()
     cursor = db.cursor()
@@ -181,32 +181,39 @@ def playlistnewpost():
 
     cursor = db.cursor()
     cursor.execute("SELECT MAX(id_playlist) FROM Playlist")
-    id_playlist = cursor.fetchone()
+    id_playlist = cursor.fetchone()[0]
     cursor.close()
 
-    id_playlist = str(id_playlist[0])
-    return redirect('/playlist/'+id_playlist)
+    return jsonify({'id_playlist': id_playlist}), 201
     
 @app.route('/playlist/edit/<int:id_playlist>')
 def playlistedit(id_playlist):
     return render_template('playlist-edit-form.html', playlist=playlist)
     
 
-@app.route('/add/<int:id_playlist>/<int:id_chanson>')
-def add(id_chanson, id_playlist):
-    cursor = db.cursor()
-    cursor.execute("INSERT INTO playlist_chansons VALUES(%s,%s)", (id_playlist,id_chanson))
-    db.commit()
-    cursor.close()
-    return redirect('/playlist/'+str(id_playlist))
+@app.route('/api/playlist/add/<int:id_playlist>/<int:id_chanson>', methods=['POST'])
+def add_to_playlist(id_playlist, id_chanson):
+    try:
+        cursor = db.cursor()
+        cursor.execute("INSERT INTO playlist_chansons VALUES(%s, %s)", (id_playlist, id_chanson))
+        db.commit()
+        cursor.close()
 
-@app.route('/remove/<int:id_playlist>/<int:id_chanson>')
-def remove(id_chanson, id_playlist):
-    cursor = db.cursor()
-    cursor.execute("DELETE FROM playlist_chansons WHERE id_playlist=%s AND id_chanson=%s", (id_playlist,id_chanson))
-    db.commit()
-    cursor.close()
-    return redirect('/playlist/'+str(id_playlist))
+        return jsonify({'message': 'Chanson added to playlist successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/playlist/remove/<int:id_playlist>/<int:id_chanson>', methods=['DELETE'])
+def remove_from_playlist(id_playlist, id_chanson):
+    try:
+        cursor = db.cursor()
+        cursor.execute("DELETE FROM playlist_chansons WHERE id_playlist=%s AND id_chanson=%s", (id_playlist, id_chanson))
+        db.commit()
+        cursor.close()
+
+        return jsonify({'message': 'Chanson removed from playlist successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/sons')
 def sons():

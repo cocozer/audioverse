@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Formulaire d'ajout' de playlist</title>
-	<meta charset="utf-8">
+    <title>Formulaire d'ajout de playlist</title>
+    <meta charset="utf-8">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <nav>
-		<a href="/">Accueil</a>
-		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
-		<a href="{{ url_for('albums') }}">Albums</a>
-		<a href="{{ url_for('sons') }}">Liste des musiques</a>
-	</nav>
+        <a href="/">Accueil</a>
+        <a href="{{ url_for('artistes') }}">Liste des artistes</a>
+        <a href="{{ url_for('albums') }}">Albums</a>
+        <a href="{{ url_for('sons') }}">Liste des musiques</a>
+    </nav>
     <main>
         <h1>Formulaire d'ajout d'une playlist</h1>
-        <form method="POST" enctype="multipart/form-data" action="/playlist/new/post">
+        <form id="playlist-form" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="nom">Nom</label>
                 <input type="text" name="nom" id="nom" class="form-control">
@@ -29,7 +29,27 @@
             </div>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
         </form>
-        
     </main>
+
+    <script>
+        document.getElementById('playlist-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+
+            fetch('/api/playlists', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Redirect to the newly created playlist page
+                var playlistId = data.id_playlist;
+                window.location.href = '/playlist/' + playlistId;
+            })
+            .catch(error => console.log(error));
+        });
+    </script>
 </body>
 </html>
