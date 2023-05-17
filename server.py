@@ -24,30 +24,58 @@ def index():
     return render_template('audioverse.html')
 
 # Endpoint pour récupérer les playlists en tant que JSON
-@app.route('/api/playlists')
+@app.route('/api/playlists', methods=['GET', 'POST'])
 def get_playlists():
-    try:
+    if request.method == 'GET':
+        try:
+            cursor = db.cursor()
+            cursor.execute("SELECT Playlist.* FROM Playlist")
+            playlists = cursor.fetchall()
+            cursor.close()
+
+
+            # Conversion des résultats en une liste de dictionnaires
+            playlist_data = []
+            for playlist in playlists:
+                playlist_dict = {
+                    'id': playlist[0],
+                    'name': playlist[1],
+                    'description': playlist[2],
+                    'date_creation': playlist[3].strftime('%Y-%m-%d'),  # Conversion de la date en format string
+                    'image': playlist[4]
+                }
+                playlist_data.append(playlist_dict)
+
+            return jsonify(playlist_data)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    if request.method == 'POST':
+        nom = request.form['nom']
+        description = request.form['description']
+
+        app.config['UPLOADED_PHOTOS_DEST'] = 'static/playlists_img' # Modification de la destination
+        photos = UploadSet('photos', IMAGES)
+        configure_uploads(app, photos)
+        image = request.files.get('image')
+        if image:
+            try:
+                filename = photos.save(image)
+                image = filename
+            except UploadNotAllowed:
+                return jsonify({'error': 'Upload not allowed'}), 400
+        
+        date = datetime.date.today()
         cursor = db.cursor()
-        cursor.execute("SELECT Playlist.* FROM Playlist")
-        playlists = cursor.fetchall()
+        cursor.execute("INSERT INTO Playlist (nom, description, date_creation, image_upload) VALUES(%s, %s, %s, %s)", (nom, description, date, image, ))
+        db.commit()
         cursor.close()
 
+        cursor = db.cursor()
+        cursor.execute("SELECT MAX(id_playlist) FROM Playlist")
+        id_playlist = cursor.fetchone()[0]
+        cursor.close()
 
-        # Conversion des résultats en une liste de dictionnaires
-        playlist_data = []
-        for playlist in playlists:
-            playlist_dict = {
-                'id': playlist[0],
-                'name': playlist[1],
-                'description': playlist[2],
-                'date_creation': playlist[3].strftime('%Y-%m-%d'),  # Conversion de la date en format string
-                'image': playlist[4]
-            }
-            playlist_data.append(playlist_dict)
-
-        return jsonify(playlist_data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'id_playlist': id_playlist}), 201
 
 @app.route('/erreur-upload')
 def error():
@@ -158,33 +186,7 @@ def newplaylist():
     return render_template('new-playlist-form.html')
     
 @app.route('/api/playlists', methods=['POST'])
-def create_playlist():
-    nom = request.form['nom']
-    description = request.form['description']
 
-    app.config['UPLOADED_PHOTOS_DEST'] = 'static/playlists_img' # Modification de la destination
-    photos = UploadSet('photos', IMAGES)
-    configure_uploads(app, photos)
-    image = request.files.get('image')
-    if image:
-        try:
-            filename = photos.save(image)
-            image = filename
-        except UploadNotAllowed:
-            return jsonify({'error': 'Upload not allowed'}), 400
-    
-    date = datetime.date.today()
-    cursor = db.cursor()
-    cursor.execute("INSERT INTO Playlist (nom, description, date_creation, image_upload) VALUES(%s, %s, %s, %s)", (nom, description, date, image, ))
-    db.commit()
-    cursor.close()
-
-    cursor = db.cursor()
-    cursor.execute("SELECT MAX(id_playlist) FROM Playlist")
-    id_playlist = cursor.fetchone()[0]
-    cursor.close()
-
-    return jsonify({'id_playlist': id_playlist}), 201
     
 @app.route('/playlist/edit/<int:id_playlist>')
 def playlistedit(id_playlist):
