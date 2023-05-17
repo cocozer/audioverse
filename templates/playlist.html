@@ -1,39 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>{{ playlist[1] }}</title>
-	<link rel="stylesheet" href="/static/style.css">
+    <title id="playlist-title"></title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <nav>
-		<a href="/">Accueil</a>
-		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
-		<a href="{{ url_for('albums') }}">Albums</a>
-		<a href="{{ url_for('sons') }}">Liste des musiques</a>
-	</nav>
-	<main>
-		<h1>{{ playlist[1] }}</h1>
-        <img width="300" src="/static/playlists_img/{{ playlist[4] }}">
-		<p>Description : {{ playlist[2] }}</p>
-		<p>Date de création : {{ playlist[3] }}</p>
-        <a href="/playlist/edit/{{ playlist[0] }}">Modifier la playlist</a>
-        <a style="color:red" href="/playlist/delete/{{ playlist[0] }}">Supprimer la playlist ATTENTION IRREVERSIBLE !!!!!!</a>
-		<h2>Liste des chansons dans la playlist</h2>
+        <a href="/">Accueil</a>
+        <a href="{{ url_for('artistes') }}">Liste des artistes</a>
+        <a href="{{ url_for('albums') }}">Albums</a>
+        <a href="{{ url_for('sons') }}">Liste des musiques</a>
+    </nav>
+    <main>
+        <h1 id="playlist-title"></h1>
+        <img id="playlist-image" src="" alt="" width="300">
+        <p id="playlist-description"></p>
+        <p id="playlist-date"></p>
+        <a id="playlist-edit-link" href="">Modifier la playlist</a>
+        <a id="playlist-delete-link" style="color:red" href="">Supprimer la playlist ATTENTION IRREVERSIBLE !!!!!!</a>
+        <h2>Liste des chansons dans la playlist</h2>
         <div class="playlist">
-            <ul>
-            {% for chanson in chansons %}
-                    <li>{{ chanson[1] }}<a href="/remove/{{ chanson[12] }}/{{ chanson[11] }}"> Retirer </a></li>     
-            {% endfor %}
-            </ul>
+            <ul id="songs-in-playlist"></ul>
             <aside>
-                <ul>
-                    {% for chanson in chansonspasdansplaylist %}
-                            <li>{{ chanson[1] }}<a href="/add/{{ playlist[0] }}/{{ chanson[0] }}"> Ajouter </a></li>
-                    {% endfor %}
-                    </ul>
+                <ul id="songs-not-in-playlist"></ul>
             </aside>
         </div>
-        
-	</main>
+    </main>
+
+    <script>
+        // Récupérer l'ID de la playlist à partir de l'URL
+       
+        var playlistId = window.location.pathname.split('/').pop();
+        // Faire une requête GET à l'API pour obtenir les informations de la playlist
+        fetch('/api/playlist/' + playlistId)
+            .then(response => response.json())
+            .then(playlist => {
+                console.log('/static/playlists_img/' + playlist.image);
+                // Mettre à jour les éléments HTML avec les informations de la playlist
+                document.getElementById('playlist-title').innerText = playlist.name;
+                document.getElementById('playlist-image').src = '/static/playlists_img/' + playlist.image;
+                document.getElementById('playlist-description').innerText = 'Description : ' + playlist.description;
+                document.getElementById('playlist-date').innerText = 'Date de création : ' + playlist.date_creation;
+                document.getElementById('playlist-edit-link').href = '/playlist/edit/' + playlist.id;
+                document.getElementById('playlist-delete-link').href = '/playlist/delete/' + playlist.id;
+
+                // Générer la liste des chansons dans la playlist
+                var songsInPlaylist = playlist.songsinplaylist;
+                var songsInPlaylistContainer = document.getElementById('songs-in-playlist');
+                songsInPlaylist.forEach(function(song) {
+                    var listItem = document.createElement('li');
+                    var songName = document.createElement('span');
+                    songName.innerText = song.name;
+                    listItem.appendChild(songName);
+
+                    var removeLink = document.createElement('a');
+                    removeLink.href = '/remove/' + song.id + '/' + playlist.id;
+                    removeLink.innerText = 'Retirer';
+                    listItem.appendChild(removeLink);
+
+                    songsInPlaylistContainer.appendChild(listItem);
+                });
+
+                // Générer la liste des chansons non présentes dans la playlist
+                var songsNotInPlaylist = playlist.songsnotinplaylist;
+                var songsNotInPlaylistContainer = document.getElementById('songs-not-in-playlist');
+                songsNotInPlaylist.forEach(function(song) {
+                    var listItem = document.createElement('li');
+                    var songName = document.createElement('span');
+                    songName.innerText = song.name;
+                    listItem.appendChild(songName);
+
+                    var addLink = document.createElement('a');
+                    addLink.href = '/add/' + playlist.id + '/' + song.id;
+                    addLink.innerText = 'Ajouter';
+                    listItem.appendChild(addLink);
+
+                    songsNotInPlaylistContainer.appendChild(listItem);
+                });
+            })
+            .catch(error => console.log(error));
+    </script>
 </body>
 </html>

@@ -53,25 +53,63 @@ def get_playlists():
 def error():
     return render_template('erreur-format-de-fichier.html')
 
-@app.route('/api/playlist/<int:id_playlist>')
+@app.route('/playlist/<int:id_playlist>')
 def playlist(id_playlist):
-    cursor = db.cursor()
-    cursor.execute("SELECT playlist.* FROM Playlist WHERE playlist.id_playlist=%s", (id_playlist,))
-    playlist = cursor.fetchone()
-    cursor.close()
+    return render_template('playlist.html', id_playlist=id_playlist)
 
-    cursor = db.cursor()
-    cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist INNER JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s", (id_playlist,))
-    chansons = cursor.fetchall()
-    cursor.close()
+@app.route('/api/playlist/<int:id_playlist>')
+def get_playlist(id_playlist):
+    try:
+        # Récupération de la playlist
+        cursor = db.cursor()
+        cursor.execute("SELECT id_playlist, nom, description, date_creation, image_upload FROM Playlist WHERE id_playlist=%s", (id_playlist,))
+        playlist = cursor.fetchone()
+        cursor.close()
 
-    cursor = db.cursor()
-    cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist RIGHT JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s IS NULL", (id_playlist,))
-    chansonspasdansplaylist = cursor.fetchall()
-    cursor.close()
+        if not playlist:
+            return jsonify({'error': 'Playlist not found'}), 404
 
-    return render_template('playlist.html', playlist=playlist, chansons=chansons, chansonspasdansplaylist=chansonspasdansplaylist)
+        playlist_dict = {
+            'id': playlist[0],
+            'name': playlist[1],
+            'description': playlist[2],
+            'date_creation': playlist[3].strftime('%Y-%m-%d'),  # Conversion de la date en format string
+            'image': playlist[4],
+            'songsinplaylist': [],
+            'songsnotinplaylist': []
+        }
 
+        # Récupération des chansons dans la playlist
+        cursor = db.cursor()
+        cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist INNER JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s", (id_playlist,))
+        chansons = cursor.fetchall()
+        cursor.close()
+
+        # Récupération des chansons non présentes dans la playlist
+        cursor = db.cursor()
+        cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist RIGHT JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s IS NULL", (id_playlist,))
+        chansonspasdansplaylist = cursor.fetchall()
+        cursor.close()
+
+        for chanson in chansons:
+            chanson_dict = {
+                'id': chanson[11],
+                'name': chanson[2],
+                'id_playlist': chanson[12],
+            }
+            playlist_dict['songsinplaylist'].append(chanson_dict)
+
+        for chanson in chansonspasdansplaylist:
+            chanson_dict = {
+                'id': chanson[0],
+                'name': chanson[2]
+            }
+            playlist_dict['songsnotinplaylist'].append(chanson_dict)
+
+        return jsonify(playlist_dict)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 @app.route('/playlist/new')
 def playlistcreate():
     cursor = db.cursor()
