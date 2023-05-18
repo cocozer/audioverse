@@ -390,7 +390,8 @@ def chanson_api(id_chanson):
             duree = chanson[4]
             minutes = duree.seconds // 60
             secondes = duree.seconds % 60
-            duree = "{} m : {} s".format(minutes, secondes)
+            temps = datetime.time(0, minutes, secondes)
+            duree = temps.strftime("%H:%M:%S")
 
             chanson_dict = {
                 'id': chanson[0],
@@ -413,16 +414,21 @@ def chanson_api(id_chanson):
             return jsonify({'error': str(e)}), 500
     elif request.method == 'POST':
         try:
+            
             id_chanson = int(request.form['id_chanson'])
             titre = request.form['titre']
             description = request.form['description']
             duree = request.form['duree']
             directeur_artistique = request.form['directeur_artistique']
             producteur = request.form['producteur']
+            
             label = request.form['label']
             id_artiste = int(request.form['id_artiste'])
+            
             id_album = int(request.form['id_album'])
+            
             id_genre = int(request.form['id_genre'])
+            
 
             app.config['UPLOADED_PHOTOS_DEST'] = 'static/chansons_img' # Modification de la destination
             photos = UploadSet('photos', IMAGES)
@@ -435,12 +441,13 @@ def chanson_api(id_chanson):
                     cover = filename
                 except UploadNotAllowed:
                     return jsonify({'error': 'Upload not allowed'}), 400
-
+            
             cursor = db.cursor()
             if cover:
-                cursor.execute("UPDATE Chansons SET description=%s, titre=%s, cover=%s, duree=%s, directeur_artistique=%s, producteur=%s, label=%s, id_artiste=%s, id_album=%s, id_genre=%s WHERE id_chanson=%s", (description, titre, cover, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre, id_chanson))
+                cursor.execute("UPDATE chansons SET description=%s, titre=%s, cover=%s, duree=%s, directeur_artistique=%s, producteur=%s, label=%s, id_artiste=%s, id_album=%s, id_genre=%s WHERE id_chanson=%s",(description, titre, cover, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre, id_chanson))
             else:
-                cursor.execute("UPDATE Chansons SET description=%s, titre=%s, duree=%s, directeur_artistique=%s, producteur=%s, label=%s, id_artiste=%s, id_album=%s, id_genre=%s WHERE id_chanson=%s", (description, titre, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre, id_chanson))
+                cursor.execute("UPDATE chansons SET description=%s, titre=%s, duree=%s, directeur_artistique=%s, producteur=%s, label=%s, id_artiste=%s, id_album=%s, id_genre=%s WHERE id_chanson=%s",(description, titre, duree, directeur_artistique, producteur, label, id_artiste, id_album, id_genre, id_chanson))
+
             db.commit()
             cursor.close()
             id_chanson = str(id_chanson)
@@ -498,6 +505,7 @@ def getalbums():
 
         for album in albums:
                 album_dict = {
+                    'id':album[0],
                     'cover': album[1],
                     'titre': album[2],
                     'artiste': album[3],
