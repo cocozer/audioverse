@@ -14,7 +14,6 @@
 	</nav>
     <main>
         <h1>Liste des albums</h1>
-
         <table>
             <thead>
                 <tr>
@@ -25,22 +24,64 @@
                     <th>Nombre de sons</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for artiste, albums in albums_par_artiste.items() %}
+            <tbody id="bodytab">
 
-                {% for album in albums %}
-                <tr>
-                    <td><img width="100" src="static/albums_img/{{ album[1] }}"></td>
-                    <td><a href="/album/{{ album[0] }}">{{ album[2] }}</a>
-                    </td>
-                    <td><a href="/artiste/{{ album[6] }}">{{ album[3] }}</a></td>
-                    <td>{{ album[4] }}</td>
-                    <td>{{ album[5] }}</td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
             </tbody>
         </table>
+
+        <script>
+            // Fonction pour effectuer une requête fetch vers l'endpoint /api/playlists et afficher les playlists
+            function getAlbums() {
+                fetch('/api/albums')
+                    .then(response => response.json())
+                    .then(albums => {
+                        
+                        const tableBody = document.getElementById('bodytab');
+
+                        albums.forEach(album => {
+                            const row = document.createElement('tr');
+
+                            const coverCell = document.createElement('td');
+                            const coverImage = document.createElement('img');
+                            coverImage.src = "../static/albums_img/"+album.cover;
+                            coverImage.width = 100;
+                            coverCell.appendChild(coverImage);
+
+                            const titleCell = document.createElement('td');
+                            titleCell.textContent = album.titre;
+
+                            const artistCell = document.createElement('td');
+                            artistCell.textContent = album.artiste;
+
+                            const genreCell = document.createElement('td');
+                            genreCell.textContent = album.genre;
+
+                            const songCountCell = document.createElement('td');
+                            songCountCell.textContent = album.nombre_de_musique;
+
+                            row.appendChild(coverCell);
+                            row.appendChild(titleCell);
+                            row.appendChild(artistCell);
+                            row.appendChild(genreCell);
+                            row.appendChild(songCountCell);
+
+                            tableBody.appendChild(row);
+                        });
+
+                    
+                    })
+                    .catch(error => {
+                    console.log('Une erreur s\'est produite:', error);
+                    });
+            }
+
+            // Appeler la fonction loadPlaylists au chargement de la page
+            document.addEventListener('DOMContentLoaded', () => {
+                getAlbums();
+            });
+
+            
+        </script>
     </main>
 </body>
 </html>

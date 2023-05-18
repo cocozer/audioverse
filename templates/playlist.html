@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title id="playlist-title"></title>
+    <title id="playlist-title-page"></title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -35,9 +35,10 @@
         fetch('/api/playlist/' + playlistId)
             .then(response => response.json())
             .then(playlist => {
-                console.log('/static/playlists_img/' + playlist.image);
+                console.log(document.getElementById('playlist-title'));
                 // Mettre à jour les éléments HTML avec les informations de la playlist
                 document.getElementById('playlist-title').innerText = playlist.name;
+                document.getElementById('playlist-title-page').innerText = playlist.name;
                 document.getElementById('playlist-image').src = '/static/playlists_img/' + playlist.image;
                 document.getElementById('playlist-description').innerText = 'Description : ' + playlist.description;
                 document.getElementById('playlist-date').innerText = 'Date de création : ' + playlist.date_creation;
@@ -49,8 +50,12 @@
                 songsInPlaylist.forEach(function(song) {
                     var listItem = document.createElement('li');
                     var songName = document.createElement('span');
+                    var artisteName = document.createElement('span');
+                    artisteName.innerText = song.artiste + " / ";
                     songName.innerText = song.name;
+                    listItem.appendChild(artisteName);
                     listItem.appendChild(songName);
+                    
 
                     var removeLink = document.createElement('a');
                     removeLink.href = '#';
@@ -69,7 +74,10 @@
                 songsNotInPlaylist.forEach(function(song) {
                     var listItem = document.createElement('li');
                     var songName = document.createElement('span');
+                    var artisteName = document.createElement('span');
+                    artisteName.innerText = song.artiste + " / ";
                     songName.innerText = song.name;
+                    listItem.appendChild(artisteName);
                     listItem.appendChild(songName);
 
                     var addLink = document.createElement('a');

@@ -111,13 +111,13 @@ def get_playlist(id_playlist):
 
             # Récupération des chansons dans la playlist
             cursor = db.cursor()
-            cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist INNER JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s", (id_playlist,))
+            cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist, artistes.nom FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist INNER JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson INNER JOIN artistes ON artistes.id_artiste = chansons.id_artiste WHERE playlist.id_playlist=%s", (id_playlist,))
             chansons = cursor.fetchall()
             cursor.close()
 
             # Récupération des chansons non présentes dans la playlist
             cursor = db.cursor()
-            cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist RIGHT JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson WHERE playlist.id_playlist=%s IS NULL", (id_playlist,))
+            cursor.execute("SELECT chansons.*, playlist_chansons.id_chanson, playlist_chansons.id_playlist, artistes.nom FROM Playlist INNER JOIN playlist_chansons ON playlist_chansons.id_playlist = playlist.id_playlist RIGHT JOIN chansons ON playlist_chansons.id_chanson = chansons.id_chanson INNER JOIN artistes ON artistes.id_artiste = chansons.id_artiste WHERE playlist.id_playlist=%s IS NULL", (id_playlist,))
             chansonspasdansplaylist = cursor.fetchall()
             cursor.close()
 
@@ -125,6 +125,7 @@ def get_playlist(id_playlist):
                 chanson_dict = {
                     'id': chanson[11],
                     'name': chanson[2],
+                    'artiste': chanson[13],
                     'id_playlist': chanson[12],
                 }
                 playlist_dict['songsinplaylist'].append(chanson_dict)
@@ -132,7 +133,9 @@ def get_playlist(id_playlist):
             for chanson in chansonspasdansplaylist:
                 chanson_dict = {
                     'id': chanson[0],
-                    'name': chanson[2]
+                    'name': chanson[2],
+                    'artiste': chanson[13]
+
                 }
                 playlist_dict['songsnotinplaylist'].append(chanson_dict)
 
@@ -479,18 +482,35 @@ def chansondelete(id_chanson):
 
 @app.route('/albums')
 def albums():
-    cursor = db.cursor()
-    cursor.execute("SELECT albums.id_album, albums.cover, albums.titre, artistes.nom AS nom_artiste, genres.titre, COUNT(chansons.id_chanson) AS nombre_de_musique, albums.id_artiste FROM chansons INNER JOIN artistes ON chansons.id_artiste = artistes.id_artiste INNER JOIN genres ON chansons.id_genre = genres.id_genre INNER JOIN albums ON chansons.id_album = albums.id_album GROUP BY albums.id_album ORDER BY artistes.id_artiste")
-    albums = cursor.fetchall()
-    cursor.close()
 
-    albums_par_artiste = {}
-    for album in albums:
-        if album[6] not in albums_par_artiste:
-            albums_par_artiste[album[6]] = []
-        albums_par_artiste[album[6]].append(album)
+    return render_template('liste_albums.html')
 
-    return render_template('liste_albums.html', albums_par_artiste=albums_par_artiste)
+
+@app.route('/api/albums')
+def getalbums():
+    try:
+        cursor = db.cursor()
+        cursor.execute("SELECT albums.id_album, albums.cover, albums.titre, artistes.nom AS nom_artiste, genres.titre, COUNT(chansons.id_chanson) AS nombre_de_musique, albums.id_artiste FROM chansons INNER JOIN artistes ON chansons.id_artiste = artistes.id_artiste INNER JOIN genres ON chansons.id_genre = genres.id_genre INNER JOIN albums ON chansons.id_album = albums.id_album GROUP BY albums.id_album ORDER BY artistes.id_artiste")
+        albums = cursor.fetchall()
+        cursor.close()
+
+        albums_par_artiste = []
+
+        for album in albums:
+                album_dict = {
+                    'cover': album[1],
+                    'titre': album[2],
+                    'artiste': album[3],
+                    'genre': album[4],
+                    'nombre_de_musique':album[6]
+                }
+                albums_par_artiste.append(album_dict)
+
+        return jsonify(albums_par_artiste)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 
 @app.route('/album/<int:id_album>')
 def album(id_album):
