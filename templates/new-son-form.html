@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Formulaire d'ajout de chanson</title>
-	<meta charset="utf-8">
+    <title>Formulaire d'ajout de chanson</title>
+    <meta charset="utf-8">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <nav>
-		<a href="/">Accueil</a>
-		<a href="{{ url_for('artistes') }}">Liste des artistes</a>
-		<a href="{{ url_for('albums') }}">Albums</a>
-		<a href="{{ url_for('sons') }}">Liste des musiques</a>
-	</nav>
+        <a href="/">Accueil</a>
+        <a href="{{ url_for('artistes') }}">Liste des artistes</a>
+        <a href="{{ url_for('albums') }}">Albums</a>
+        <a href="{{ url_for('sons') }}">Liste des musiques</a>
+    </nav>
     <main>
-        <h1>Ajout de chanson par album</h1>
-        <form method="POST" enctype="multipart/form-data" action="/sons/new/post">
-            <div style="visibility:hidden" class="form-group">
-                <label for="id_chanson">ID Chanson</label>
-                <input type="number" name="id_chanson" id="id_chanson" class="form-control" value="{{ newid }}">
-            </div>
+        <h1>Formulaire d'ajout de chanson</h1>
+        <form id="chanson-form" enctype="multipart/form-data" action="/api/sons" method="POST">
             <div class="form-group">
                 <label for="titre">Titre</label>
                 <input type="text" name="titre" id="titre" class="form-control">
@@ -33,8 +29,9 @@
             </div>
             <div class="form-group">
                 <label for="duree">Durée</label>
-                <input type="time" name="duree" id="duree" class="form-control">
+                <input type="text" name="duree" id="duree" class="form-control" pattern="^([0-9]{2}):([0-9]{2})$" placeholder="MM:SS" />
             </div>
+
             <div class="form-group">
                 <label for="directeur_artistique">Directeur artistique</label>
                 <input type="text" name="directeur_artistique" id="directeur_artistique" class="form-control">
@@ -47,25 +44,112 @@
                 <label for="label">Label</label>
                 <input type="text" name="label" id="label" class="form-control">
             </div>
-            <div class="form-group">
-                <label for="id_album">Album</label>
-                <select name="id_album" id="id_album" class="form-control">
-                    {% for album in albums %}
-                    <option value="{{ album[0] }}">{{ album[1] }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+
+            
             <div class="form-group">
                 <label for="id_genre">Genre</label>
                 <select name="id_genre" id="id_genre" class="form-control">
-                    {% for genre in genres %}
-                    <option value="{{ genre[0] }}">{{ genre[1] }}</option>
-                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id_artiste">Artiste</label>
+                <select name="id_artiste" id="id_artiste" class="form-control">
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id_album">Album</label>
+                <select name="id_album" id="id_album" class="form-control">
                 </select>
             </div>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
         </form>
-        
     </main>
+
+    <script>
+        function getInfos() {
+            fetch('/api/genres')
+                .then(response => response.json())
+                .then(genres => {
+                    var genreSelect = document.getElementById('id_genre');
+                    genres.forEach(genre => {
+                        
+                        var option = document.createElement('option');
+                        option.value = genre.id;
+                        option.text = genre.titre;
+                        genreSelect.appendChild(option);
+                    });
+                    return fetch('/api/artistes');
+                })
+                .then(response => response.json())
+                .then(artistes => {
+                    var artisteSelect = document.getElementById('id_artiste');
+                    artistes.forEach(artiste => {
+                        var option = document.createElement('option');
+                        option.value = artiste.id;
+                        option.text = artiste.nom;
+                        artisteSelect.appendChild(option);
+                    });
+                    return fetch('/api/albums');
+                })
+                .then(response => response.json())
+                .then(albums => {
+                    var albumSelect = document.getElementById('id_album');
+                    albums.forEach(album => {
+                        var option = document.createElement('option');
+                        option.value = album.id;
+                        option.text = album.titre;
+                        albumSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.log(error));
+
+            document.getElementById('chanson-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                var titre = document.getElementById('titre').value;
+                var description = document.getElementById('description').value;
+                var cover = document.getElementById('cover').files[0];
+                var duree = document.getElementById('duree').value;
+                var directeur_artistique = document.getElementById('directeur_artistique').value;
+                var producteur = document.getElementById('producteur').value;
+                var label = document.getElementById('label').value;
+                var id_genre = document.getElementById('id_genre').value;
+                var id_artiste = document.getElementById('id_artiste').value;
+                var id_album = document.getElementById('id_album').value;
+
+                var formData = new FormData();
+                
+                
+                formData.append('titre', titre);
+                formData.append('description', description);
+                formData.append('cover', cover);
+                formData.append('duree', duree);
+                formData.append('directeur_artistique', directeur_artistique);
+                formData.append('producteur', producteur);
+                formData.append('label', label);
+                formData.append('id_genre', id_genre);
+                formData.append('id_artiste', id_artiste);
+                formData.append('id_album', id_album);
+
+                console.log(formData)
+
+                fetch('/api/sons', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    window.location.href = '/sons';
+                })
+                .catch(error => console.log(error));
+            });
+        }
+
+        // Appeler la fonction getInfos au chargement de la page
+        document.addEventListener('DOMContentLoaded', () => {
+            getInfos();
+        });
+    </script>
 </body>
 </html>

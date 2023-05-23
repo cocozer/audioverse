@@ -223,39 +223,71 @@ def sons():
     return render_template('liste_sons.html')
 
 
-@app.route('/api/sons')
+@app.route('/api/sons', methods=['GET', 'POST'])
 def sons_api():
-    try:
-        cursor = db.cursor()
-        cursor.execute("SELECT Chansons.*, Genres.titre, Artistes.nom AS nom_artiste, Albums.titre AS titre_album FROM Chansons JOIN Genres ON Chansons.id_genre = Genres.id_genre LEFT JOIN Artistes ON Chansons.id_artiste = Artistes.id_artiste LEFT JOIN Albums ON Chansons.id_album = Albums.id_album ORDER BY Genres.titre, artistes.id_artiste")
-        chansons = cursor.fetchall()
-        cursor.close()
-        chansons_list = []
-        
-        
-        
-        for chanson in chansons:
+    if request.method == 'GET':
+        try:
+            cursor = db.cursor()
+            cursor.execute("SELECT Chansons.*, Genres.titre, Artistes.nom AS nom_artiste, Albums.titre AS titre_album FROM Chansons JOIN Genres ON Chansons.id_genre = Genres.id_genre LEFT JOIN Artistes ON Chansons.id_artiste = Artistes.id_artiste LEFT JOIN Albums ON Chansons.id_album = Albums.id_album ORDER BY Genres.titre, artistes.id_artiste")
+            chansons = cursor.fetchall()
+            cursor.close()
+            chansons_list = []
 
-            duree = chanson[4]
-            print(duree)
-            minutes = duree.seconds // 60  # Division entière pour obtenir les minutes
-            secondes = duree.seconds % 60  # Modulo pour obtenir les secondes restantes
-            duree = "{} m : {} s".format(minutes, secondes)
-            
-            chanson_dict = {
-                'id': chanson[0],
-                'description' : chanson[1],
-                'titre': chanson[2],
-                'cover': chanson[3],
-                'duree': duree,
-                'genre': chanson[11],
-                'nom_artiste': chanson[12],
-                'titre_album': chanson[13]
-            }
-            chansons_list.append(chanson_dict)
-        return jsonify(chansons_list)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+            for chanson in chansons:
+                duree = chanson[4]
+                minutes = duree.seconds // 60  # Division entière pour obtenir les minutes
+                secondes = duree.seconds % 60  # Modulo pour obtenir les secondes restantes
+                duree = "{} m : {} s".format(minutes, secondes)
+
+                chanson_dict = {
+                    'id': chanson[0],
+                    'description' : chanson[1],
+                    'titre': chanson[2],
+                    'cover': chanson[3],
+                    'duree': duree,
+                    'genre': chanson[11],
+                    'nom_artiste': chanson[12],
+                    'titre_album': chanson[13]
+                }
+                chansons_list.append(chanson_dict)
+            return jsonify(chansons_list)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    elif request.method == 'POST':
+        try:
+            titre = request.form['titre']
+            description = request.form['description']
+            duree = request.form['duree']
+            directeur_artistique = request.form['directeur_artistique']
+            producteur = request.form['producteur']
+            label = request.form['label']
+            id_genre = int(request.form['id_genre'])
+            id_artiste = int(request.form['id_artiste'])
+            id_album = int(request.form['id_album'])
+
+            app.config['UPLOADED_PHOTOS_DEST'] = 'static/chansons_img'  # Modification de la destination
+            photos = UploadSet('photos', IMAGES)
+            configure_uploads(app, photos)
+
+            cover_file = request.files.get('cover')
+            if cover_file:
+                try:
+                    filename = photos.save(cover_file)
+                    cover = filename
+                except UploadNotAllowed:
+                    return jsonify({'error': 'Upload not allowed'}), 400
+            else:
+                cover = None
+
+            cursor = db.cursor()
+            cursor.execute("INSERT INTO Chansons (id_chanson, description, titre, cover, duree, directeur_artistique, producteur, label, id_genre, id_artiste, id_album) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                        (description, titre, cover, duree, directeur_artistique, producteur, label, id_genre, id_artiste, id_album))
+            db.commit()
+            cursor.close()
+
+            return jsonify({'message': 'Chanson added successfully'})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
     
 @app.route('/api/genres')
 def genres_api():
@@ -280,20 +312,7 @@ def genres_api():
 
 @app.route('/sons/new', methods=['GET', 'POST'])
 def newsons():
-    cursor = db.cursor()
-
-    cursor.execute("SELECT * FROM Albums INNER JOIN Artistes ON Artistes.id_artiste=Albums.id_artiste GROUP BY Albums.id_album")
-    albums = cursor.fetchall()
-
-    cursor.execute("SELECT * FROM Genres")
-    genres = cursor.fetchall()
-
-    cursor.execute("SELECT MAX(id_chanson) FROM chansons")
-    lastchanson = cursor.fetchone()
-    
-    cursor.close()
-
-    return render_template('new-son-form.html', albums=albums, newid=lastchanson[0]+1, genres=genres)
+    return render_template('new-son-form.html')
 
 @app.route('/sons/new/post', methods=['POST'])
 def newsonspost():
@@ -567,20 +586,46 @@ def get_album(id_album):
     
 @app.route('/artiste/<int:id_artiste>')
 def artiste(id_artiste):
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM Artistes WHERE id_artiste = %s", (id_artiste,))
-    artiste = cursor.fetchone()
+    return render_template('artiste.html', id_artiste=id_artiste)
 
-    cursor.execute("SELECT Albums.*, Genres.titre AS nom_genre FROM Albums JOIN Genres ON Albums.id_genre = Genres.id_genre WHERE Albums.id_artiste = %s", (id_artiste,))
-    albums = cursor.fetchall()
+# Endpoint pour afficher les détails d'un artiste
+@app.route('/api/artiste/<int:id_artiste>')
+def get_artiste(id_artiste):
+    try:
+        # Récupérer les informations de l'artiste
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM Artistes WHERE id_artiste = %s", (id_artiste,))
+        artiste = cursor.fetchone()
 
-    cursor.execute("SELECT Chansons.*, Albums.titre AS nom_album FROM Chansons JOIN Albums ON Chansons.id_album = Albums.id_album WHERE Chansons.id_artiste = %s", (id_artiste,))
-    chansons = cursor.fetchall()
+        if not artiste:
+            return jsonify({'error': 'Artiste not found'}), 404
 
-    cursor.close()
+        # Récupérer les albums de l'artiste
+        cursor.execute("SELECT Albums.* FROM Albums WHERE Albums.id_artiste = %s", (id_artiste,))
+        albums = cursor.fetchall()
+        cursor.close()
 
-    return render_template('artiste.html', artiste=artiste, albums=albums, chansons=chansons)
+        artiste_data = {
+            'nom': artiste[1],
+            'genre': artiste[2],
+            'photo': artiste[3],
+            'biographie': artiste[4],
+            'nationalite': artiste[5],
+            'date_naissance': artiste[6],
+            'albums': []
+        }
 
+        for album in albums:
+            album_data = {
+                'id':album[0],
+                'titre':album[1],
+                'image':album[2]
+            }
+            artiste_data['albums'].append(album_data)
+
+        return jsonify(artiste_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
