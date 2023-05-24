@@ -30,7 +30,7 @@
         </table>
 
         <script>
-            // Fonction pour effectuer une requête fetch vers l'endpoint /api/playlists et afficher les playlists
+            // Fonction pour effectuer une requête fetch vers l'endpoint /api/albums et afficher les albums
             function getAlbums() {
                 fetch('/api/albums')
                     .then(response => response.json())
@@ -43,12 +43,15 @@
 
                             const coverCell = document.createElement('td');
                             const coverImage = document.createElement('img');
-                            coverImage.src = "../static/albums_img/"+album.cover;
+                            coverImage.src = "../static/albums_img/" + album.cover;
                             coverImage.width = 100;
                             coverCell.appendChild(coverImage);
 
                             const titleCell = document.createElement('td');
-                            titleCell.textContent = album.titre;
+                            const titleLink = document.createElement('a');
+                            titleLink.href = "/album/" + album.id; // Utilisation de l'id de l'album pour générer le lien
+                            titleLink.textContent = album.titre;
+                            titleCell.appendChild(titleLink);
 
                             const artistCell = document.createElement('td');
                             artistCell.textContent = album.artiste;
@@ -67,20 +70,16 @@
 
                             tableBody.appendChild(row);
                         });
-
-                    
                     })
                     .catch(error => {
-                    console.log('Une erreur s\'est produite:', error);
+                        console.log('Une erreur s\'est produite:', error);
                     });
             }
 
-            // Appeler la fonction loadPlaylists au chargement de la page
+            // Appeler la fonction getAlbums au chargement de la page
             document.addEventListener('DOMContentLoaded', () => {
                 getAlbums();
             });
-
-            
         </script>
     </main>
 </body>
