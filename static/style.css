@@ -108,3 +108,33 @@ nav a {
     text-decoration: none;
     margin: 0 10px;
 }
+
+#album-image
+{
+    float: left;
+    margin-left: 30%;
+    margin-right: 10px;
+}
+
+
+#track
+{
+    clear: both; 
+}
+
+#album-songs
+{
+    clear: both;
+    position: absolute;
+  top: 100%;
+    
+}
+
+#container
+{
+    clear: both;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
