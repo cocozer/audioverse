@@ -16,7 +16,7 @@
         <h1>Détails de l'artiste</h1>
         <div id="artiste-details">
             <h2 id="nom"></h2>
-            <p><strong>Genre influent :</strong> <span id="genre"></span></p>
+            <p><strong>Genre :</strong> <span id="genre"></span></p>
             <img src="" alt="Photo de l'artiste" id="photo">
             <p><strong>Biographie:</strong> <span id="biographie"></span></p>
             <p><strong>Nationalité:</strong> <span id="nationalite"></span></p>
@@ -48,6 +48,8 @@
                         const albumDiv = document.createElement('div');
                         const albumTitle = document.createElement('h4');
                         const albumCover = document.createElement('img');
+                        albumLink.style="margin-right:2rem;"
+                        albumTitle.style="margin-bottom:0.5rem;"
 
                         albumLink.href = '/album/' + album.id;
                         albumLink.classList.add('album-button');

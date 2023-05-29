@@ -529,7 +529,7 @@ def getalbums():
                     'titre': album[2],
                     'artiste': album[3],
                     'genre': album[4],
-                    'nombre_de_musique':album[6]
+                    'nombre_de_musique':album[5]
                 }
                 albums_par_artiste.append(album_dict)
 

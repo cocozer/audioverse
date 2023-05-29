@@ -30,7 +30,6 @@
 
     <script>
         const chansonId = window.location.pathname.split('/').pop();
-        console.log(chansonId);
         const chansonUrl = `/api/chanson/${chansonId}`;
 
         fetch(chansonUrl)

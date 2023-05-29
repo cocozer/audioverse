@@ -34,7 +34,6 @@
     <script>
         // Récupérer l'ID de l'album à partir de l'URL
         var albumId = window.location.pathname.split('/').pop();
-        console.log(albumId);
         // Faire une requête GET à l'API pour obtenir les informations de l'album
         fetch('/api/album/' + albumId)
             .then(response => response.json())

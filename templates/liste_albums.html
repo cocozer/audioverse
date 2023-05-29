@@ -36,9 +36,11 @@
                     .then(response => response.json())
                     .then(albums => {
                         
+                        
                         const tableBody = document.getElementById('bodytab');
 
                         albums.forEach(album => {
+                            console.log(album.nombre_de_musique);
                             const row = document.createElement('tr');
 
                             const coverCell = document.createElement('td');
