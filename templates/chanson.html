@@ -30,11 +30,13 @@
 
     <script>
         const chansonId = window.location.pathname.split('/').pop();
+        console.log(chansonId);
         const chansonUrl = `/api/chanson/${chansonId}`;
 
         fetch(chansonUrl)
             .then(response => response.json())
             .then(chanson => {
+                console.log(chanson);
                 document.getElementById('chanson-title').innerText = chanson.titre;
                 document.getElementById('chanson-image').src = `/static/chansons_img/${chanson.cover}`;
                 document.getElementById('chanson-image').alt = chanson.titre;

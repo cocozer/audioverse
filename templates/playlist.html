@@ -19,12 +19,14 @@
         <a id="playlist-edit-link" href="">Modifier la playlist</a>
         <button id="playlist-delete-button" style="color:red">Supprimer la playlist ATTENTION IRREVERSIBLE !!!!!!</button>
         <h2>Liste des chansons dans la playlist</h2>
-        <div class="playlist">
-            <ul id="songs-in-playlist"></ul>
-            <aside>
+        <div class="flex-wrap" style="flex-direction:row;">
+            <div class="playlist">
+                <ul id="songs-in-playlist"></ul>
+            </div>
+            <div class="playlist">
                 <ul id="songs-not-in-playlist"></ul>
-            </aside>
         </div>
+            </div>
     </main>
 
     <script>
