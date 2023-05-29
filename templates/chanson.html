@@ -13,7 +13,7 @@
         <a href="{{ url_for('albums') }}">Albums</a>
         <a href="{{ url_for('sons') }}">Liste des musiques</a>
     </nav>
-    <main>
+    <main class="main-chanson">
         <h1 id="chanson-title"></h1>
         <img id="chanson-image" src="" alt="" width="300" height="300">
         <a href="#" id="edit-link">Modifier la chanson</a>
@@ -49,14 +49,14 @@
                         })
                         .catch(error => console.log(error));
                 });
-                document.getElementById('description').innerText = `Description : ${chanson.description}`;
-                document.getElementById('duree').innerText = `Durée : ${chanson.duree}`;
-                document.getElementById('directeur-artistique').innerText = `Directeur artistique : ${chanson.directeur_artistique}`;
-                document.getElementById('producteur').innerText = `Producteur : ${chanson.producteur}`;
-                document.getElementById('label').innerText = `Label : ${chanson.label}`;
-                document.getElementById('artiste').innerHTML = `Artiste : <a href="/artiste/${chanson.id_artiste}">${chanson.nom_artiste}</a>`;
-                document.getElementById('album').innerHTML = `Album : <a href="/album/${chanson.id_album}">${chanson.titre_album}</a>`;
-                document.getElementById('genre').innerText = `Genre : ${chanson.genre}`;
+                document.getElementById('description').innerHTML = `<strong>Description : </strong>${chanson.description}`;
+                document.getElementById('duree').innerHTML = `<strong>Durée : </strong> ${chanson.duree}`;
+                document.getElementById('directeur-artistique').innerHTML = `<strong>Directeur artistique : </strong> ${chanson.directeur_artistique}`;
+                document.getElementById('producteur').innerHTML = `<strong>Producteur : </strong> ${chanson.producteur}`;
+                document.getElementById('label').innerHTML = `<strong>Label : </strong> ${chanson.label}`;
+                document.getElementById('artiste').innerHTML = `<strong>Artiste : </strong> <a href="/artiste/${chanson.id_artiste}">${chanson.nom_artiste}</a>`;
+                document.getElementById('album').innerHTML = `<strong>Album : </strong> <a href="/album/${chanson.id_album}">${chanson.titre_album}</a>`;
+                document.getElementById('genre').innerHTML = `<strong>Genre : </strong> ${chanson.genre}`;
             })
             .catch(error => console.log(error));
     </script>

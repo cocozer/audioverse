@@ -2,56 +2,65 @@
 <html>
 <head>
     <title>Détails de l'artiste</title>
-	<meta charset="utf-8">
+    <meta charset="utf-8">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Détails de l'artiste</h1>
-    <div id="artiste-details">
-        <h2 id="nom"></h2>
-        <p><strong>Genre:</strong> <span id="genre"></span></p>
-        <img src="" alt="Photo de l'artiste" id="photo">
-        <p><strong>Biographie:</strong> <span id="biographie"></span></p>
-        <p><strong>Nationalité:</strong> <span id="nationalite"></span></p>
-        <p><strong>Date de naissance:</strong> <span id="date-naissance"></span></p>
-        <p><strong>Genre influent:</strong> <span id="genre-influent"></span></p>
-        <h3>Albums:</h3>
-        <ul id="albums-list"></ul>
-    </div>
-
+    <nav>
+        <a href="/">Accueil</a>
+        <a href="/artistes">Liste des artistes</a>
+        <a href="/albums">Albums</a>
+        <a href="/sons">Liste des musiques</a>
+    </nav>
+    <main>
+        <h1>Détails de l'artiste</h1>
+        <div id="artiste-details">
+            <h2 id="nom"></h2>
+            <p><strong>Genre influent :</strong> <span id="genre"></span></p>
+            <img src="" alt="Photo de l'artiste" id="photo">
+            <p><strong>Biographie:</strong> <span id="biographie"></span></p>
+            <p><strong>Nationalité:</strong> <span id="nationalite"></span></p>
+            <p><strong>Date de naissance:</strong> <span id="date-naissance"></span></p>
+            <h3>Albums:</h3>
+            <div id="albums-list" class="playlistsContainer"></div>
+        </div>
+    </main>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             var artisteId = window.location.pathname.split('/').pop();
 
             // Appel API pour récupérer les détails de l'artiste
-            fetch('/api/artiste/'+artisteId)
+            fetch('/api/artiste/' + artisteId)
                 .then(response => response.json())
                 .then(data => {
                     // Afficher les détails de l'artiste
-					console.log(data);
+                    console.log(data);
                     document.getElementById('nom').textContent = data.nom;
                     document.getElementById('genre').textContent = data.genre;
-                    document.getElementById('photo').src = '/static/artistes_img/'+ data.photo;
+                    document.getElementById('photo').src = '/static/artistes_img/' + data.photo;
                     document.getElementById('biographie').textContent = data.biographie;
                     document.getElementById('nationalite').textContent = data.nationalite;
                     document.getElementById('date-naissance').textContent = data.date_naissance;
 
                     const albumsList = document.getElementById('albums-list');
                     data.albums.forEach(album => {
-                        const li = document.createElement('li');
+                        const albumLink = document.createElement('a');
+                        const albumDiv = document.createElement('div');
                         const albumTitle = document.createElement('h4');
                         const albumCover = document.createElement('img');
 
+                        albumLink.href = '/album/' + album.id;
+                        albumLink.classList.add('album-button');
 
                         albumTitle.textContent = album.titre;
                         albumCover.src = '../static/albums_img/' + album.image;
-						albumCover.width = 100;
+                        albumCover.width = 100;
 
-                        li.appendChild(albumTitle);
-                        li.appendChild(albumCover);
+                        albumDiv.appendChild(albumTitle);
+                        albumDiv.appendChild(albumCover);
+                        albumLink.appendChild(albumDiv);
 
-
-                        albumsList.appendChild(li);
+                        albumsList.appendChild(albumLink);
                     });
                 })
                 .catch(error => console.log(error));

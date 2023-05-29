@@ -32,13 +32,13 @@
                             playlistDiv.classList.add('playlist');
 
                             const playlistContent = `
-                                <div>
+                                <div class="playlistsContainer-div">
                                     <h2>${playlist.name}</h2>
-                                    <img width="100" src="static/playlists_img/${playlist.image}">
+                                    <div class="flex-playlist">
+                                        <img width="100" src="static/playlists_img/${playlist.image}">
+                                        <a href="/playlist/${playlist.id}" class="editPlaylist" data-id="${playlist.id}">Modifier la playlist</a>
+                                    </div>
                                 </div>
-                                <aside>
-                                    <a href="/playlist/${playlist.id}" class="editPlaylist" data-id="${playlist.id}">Voir la playlist</a>
-                                </aside>
                             `;
                             playlistDiv.innerHTML = playlistContent;
                             playlistsContainer.appendChild(playlistDiv);
