@@ -113,28 +113,65 @@ nav a {
 {
     float: left;
     margin-left: 30%;
-    margin-right: 10px;
+    width: 300px;
+    height: 300px;
+    border-radius: 5px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+#album-artist
+{
+  margin-top: 10px;
+  margin-left: 55%;
+  line-height: 1.5;
+}
+
+#album-genre
+{
+  margin-top: 10px;
+  margin-left: 55%;
+  line-height: 1.5;
+}
+
+#album-release-year
+{
+  margin-top: 10px;
+  margin-left: 55%;
+  line-height: 1.5;
+}
+
+#album-artistic-director
+{
+  margin-top: 10px;
+  margin-left: 55%;
+  line-height: 1.5;
+}
+
+#album-producers
+{
+  margin-top: 10px;
+  margin-left: 55%;
+  line-height: 1.5;
+}
+
+#album-label
+{
+  margin-top: 10px;
+  margin-left: 55%;
+  line-height: 1.5;
 }
 
 
 #track
 {
-    clear: both; 
+    clear: both;
+    margin-top: 100px;
+    text-align: center;
 }
 
 #album-songs
 {
-    clear: both;
-    position: absolute;
-  top: 100%;
-    
-}
-
-#container
-{
-    clear: both;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
+    margin-top: 10px;
+    padding-left: 0;
+    list-style-type: none;
 }
