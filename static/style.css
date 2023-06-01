@@ -1,6 +1,7 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
+    /*background-color: #f2f2f2;*/
+    background-color: #027914;
     color: #333;
     margin: 0;
     padding: 0;
@@ -318,3 +319,48 @@ main {
 img {
     max-width:20rem;
 }
+
+/*CSS pour les formulaires*/
+
+.btn-primary
+{
+    display: inline-block;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    background-color: #055d2d;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover
+{
+    background-color: #34bf59;
+    color: black;
+}
+
+.form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+  }
+
+  #formulaire
+  {
+    font-weight: bold;
+  }
