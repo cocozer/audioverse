@@ -265,6 +265,8 @@ def sons_api():
             id_artiste = int(request.form['id_artiste'])
             id_album = int(request.form['id_album'])
 
+            
+
             app.config['UPLOADED_PHOTOS_DEST'] = 'static/chansons_img'  # Modification de la destination
             photos = UploadSet('photos', IMAGES)
             configure_uploads(app, photos)
@@ -436,8 +438,10 @@ def chanson_api(id_chanson):
             
             id_chanson = int(request.form['id_chanson'])
             titre = request.form['titre']
+            print(titre)
             description = request.form['description']
             duree = request.form['duree']
+            
             directeur_artistique = request.form['directeur_artistique']
             producteur = request.form['producteur']
             

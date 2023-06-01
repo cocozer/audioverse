@@ -67,7 +67,9 @@
 
 function getInfos() {
   var chansonId = window.location.pathname.split('/').pop();
-
+  var chanson_id_album;
+  var chanson_genre;
+  var chanson_id_artiste;
   fetch('/api/chanson/' + chansonId)
     .then(response => response.json())
     .then(chanson => {
@@ -80,13 +82,12 @@ function getInfos() {
 
         // Ajouter un préfixe de zéro pour les heures si nécessaire
         heures = heures.padStart(2, '0');
-
+      
         // Formater la durée avec les heures, minutes et secondes
         var duree_formattee = heures + ':' + minutes + ':' + secondes;
 
         // Affecter la durée formatée au champ de texte
         document.getElementById('duree').value = duree_formattee;
-
       //document.getElementById('duree').value = chanson.duree;
       
 
@@ -94,6 +95,10 @@ function getInfos() {
       document.getElementById('directeur_artistique').value = chanson.directeur_artistique;
       document.getElementById('producteur').value = chanson.producteur;
       document.getElementById('label').value = chanson.label;
+      chanson_id_album = chanson.id_album;
+      chanson_id_artiste = chanson.id_artiste;
+      chanson_genre = chanson.genre;
+      console.log(chanson);
       return fetch('/api/albums');
     })
     .then(response => response.json())
@@ -102,6 +107,9 @@ function getInfos() {
       var albumSelect = document.getElementById('id_album');
       albums.forEach(album => {
         var option = document.createElement('option');
+        if(album.id == chanson_id_album) {
+          option.selected="selected";
+        }
         option.value = album.id;
         option.text = album.titre;
         albumSelect.appendChild(option);
@@ -115,8 +123,10 @@ function getInfos() {
       var artisteSelect = document.getElementById('id_artiste');
       artistes.forEach(artiste => {
         var option = document.createElement('option');
+        if(artiste.id == chanson_id_artiste) {
+          option.selected="selected";
+        }
         option.value = artiste.id;
-        
         option.text = artiste.nom;
         artisteSelect.appendChild(option);
       });
@@ -130,6 +140,9 @@ function getInfos() {
         var option = document.createElement('option');
         option.value = genre.id;
         option.text = genre.titre;
+        if(genre.titre == chanson_genre) {
+          option.selected="selected";
+        }
         genreSelect.appendChild(option);
       });
       
@@ -149,9 +162,11 @@ function getInfos() {
     var id_artiste = document.getElementById('id_artiste').value;
     var id_album = document.getElementById('id_album').value;
     var id_genre = document.getElementById('id_genre').value;
-
+    
     var formData = new FormData();
+    formData.append('id_chanson', chansonId);
     formData.append('titre', titre);
+    
     formData.append('description', description);
     formData.append('cover', cover);
     formData.append('duree', duree);
@@ -162,7 +177,8 @@ function getInfos() {
     formData.append('id_album', id_album);
     formData.append('id_genre', id_genre);
 
-    console.log(formData)
+    
+    
 
     fetch('/api/chanson/' + chansonId, {
       method: 'POST',
